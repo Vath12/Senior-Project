@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+#include <chrono>
 #include <SDL.h>
 #include "render.h"
 //spritesheets are 128x128
@@ -11,9 +13,15 @@ int main(int argc, char* args[]) {
 
 	SDL_Rect rect = { 150, 150, 100, 100 };
 
-	double lastTime;
+	double lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	double deltaTime = 0;
 
 	while (run) {
+
+		deltaTime = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() -lastTime)/1000;
+		lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+		std::cout << (deltaTime) << std::endl;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
