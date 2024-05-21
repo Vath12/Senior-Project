@@ -141,12 +141,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\eventHandler.cpp" />
     <ClCompile Include="src\image_renderer.cpp" />
     <ClCompile Include="src\sprite.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\render.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\eventHandler.h" />
     <ClInclude Include="src\globals.h" />
     <ClInclude Include="src\image_renderer.h" />
     <ClInclude Include="src\sprite.h" />

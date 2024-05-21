@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include "render.h"
 #include "image_renderer.h"
+#include "eventHandler.h"
 #include "globals.h"
 
 int window_width = 1920;
@@ -12,7 +13,14 @@ int window_height = 1080;
 double camera_x = 0;
 double camera_y = 0;
 double camera_viewportWidth = 50;
+double deltaTime = 0;
+input keys = input();
 //spritesheets have 128x128 cells and anims play at 10fps
+
+double getTimeMillis() {
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() / 1000.0;
+}
+
 int main(int argc, char* args[]) {
 	bool run = true;
 
@@ -23,21 +31,35 @@ int main(int argc, char* args[]) {
 
 	SDL_Texture* runAnim = loadTexture(renderer,"resources/images/run_alice_sheet.bmp");
 
-	double lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	double deltaTime = 0;
-	
+	double lastTime = getTimeMillis();
+
 	while (run) {
 
-		deltaTime = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - lastTime) / 1000;
-		lastTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		deltaTime = (getTimeMillis() - lastTime);
+		lastTime = getTimeMillis();
+		
+		std::string newTitle = std::format("{} fps", std::round(std::min(1/deltaTime,1024.0)));
+
+		SDL_SetWindowTitle(window,newTitle.c_str());
 
 		SDL_Event event;
+		resetSingleFrameEvents();
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				run = false;
 			}
+			else {
+				handleEvent(&event);
+			}
 		}
-
+		if (keys.release[SDL_SCANCODE_ESCAPE]) {
+			SDL_ShowCursor(false);
+		}
+		
+		if (keys.key[SDL_SCANCODE_W]) { camera_y -= 10 * deltaTime; }
+		if (keys.key[SDL_SCANCODE_S]) { camera_y += 10 * deltaTime; }
+		if (keys.key[SDL_SCANCODE_A]) { camera_x -= 10 * deltaTime; }
+		if (keys.key[SDL_SCANCODE_D]) { camera_x += 10 * deltaTime; }
 
 		//Clear the screen
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -50,8 +72,9 @@ int main(int argc, char* args[]) {
 
 		renderTexturePortion(renderer,runAnim, &rect, &src);
 
-		SDL_RenderPresent(renderer);
 
+
+		SDL_RenderPresent(renderer);
 	}
 
 	unloadTextures();
@@ -61,3 +84,4 @@ int main(int argc, char* args[]) {
 
 	return 0;
 }
+
