@@ -13,6 +13,16 @@ SDL_Rect worldToCamera(SDL_Rect* input) {
 	};
 	return output;
 }
+
+SDL_Rect worldToCamera(double x, double y, double w, double h) {
+	SDL_Rect output = {
+		(x - camera_x) / camera_viewportWidth * window_width,
+		(y - camera_y) / camera_viewportWidth * window_width,
+		w/ camera_viewportWidth * window_width,
+		h / camera_viewportWidth * window_width
+	};
+	return output;
+}
 SDL_Rect cameraToWorld(SDL_Rect* input) {
 	SDL_Rect output = {
 	(input->x+camera_x) / window_width * camera_viewportWidth,
@@ -22,6 +32,8 @@ SDL_Rect cameraToWorld(SDL_Rect* input) {
 	};
 	return output;
 }
+
+
 
 SDL_Window* render_initialize(const char title[], int x, int y, int width, int height, int flags){
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {

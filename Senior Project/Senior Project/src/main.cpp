@@ -7,6 +7,7 @@
 #include "image_renderer.h"
 #include "eventHandler.h"
 #include "globals.h"
+#include "sprite.h"
 
 int window_width = 1920;
 int window_height = 1080;
@@ -24,6 +25,7 @@ double getTimeMillis() {
 int main(int argc, char* args[]) {
 	bool run = true;
 
+	sprite::init();
 	SDL_Window* window = render_initialize("SeniorProject", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,1920,1080,SDL_WINDOW_RESIZABLE);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window,-1, SDL_RENDERER_ACCELERATED);
 
@@ -32,6 +34,11 @@ int main(int argc, char* args[]) {
 	SDL_Texture* runAnim = loadTexture(renderer,"resources/images/run_alice_sheet.bmp");
 
 	double lastTime = getTimeMillis();
+
+	
+	sprite testMan = sprite(runAnim,10,10,2,2,64);
+	testMan.playAnimation(0,6,8);
+	std::cout << testMan.x << " " << testMan.y << " " << testMan.w << " " << testMan.h;
 
 	while (run) {
 
@@ -65,14 +72,7 @@ int main(int argc, char* args[]) {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		rect = { 0,0,2,2 };
-		rect = worldToCamera(&rect);
-
-		SDL_Rect src = { 0, 0, 64, 64 };
-
-		renderTexturePortion(renderer,runAnim, &rect, &src);
-
-
+		sprite::update(renderer,deltaTime);
 
 		SDL_RenderPresent(renderer);
 	}

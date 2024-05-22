@@ -5,6 +5,7 @@
 #include <vector>
 
 SDL_Rect worldToCamera(SDL_Rect* input);
+SDL_Rect worldToCamera(double x,double y,double w,double h);
 SDL_Rect cameraToWorld(SDL_Rect* input);
 
 SDL_Window* render_initialize(const char title[], int x, int y, int width, int height, int flags);
