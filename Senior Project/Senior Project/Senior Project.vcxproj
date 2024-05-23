@@ -141,18 +141,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\entity.cpp" />
     <ClCompile Include="src\eventHandler.cpp" />
     <ClCompile Include="src\image_renderer.cpp" />
     <ClCompile Include="src\sprite.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\render.cpp" />
+    <ClCompile Include="src\vector2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\eventHandler.h" />
     <ClInclude Include="src\globals.h" />
+    <ClInclude Include="src\entity.h" />
     <ClInclude Include="src\image_renderer.h" />
     <ClInclude Include="src\sprite.h" />
     <ClInclude Include="src\render.h" />
+    <ClInclude Include="src\vector2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
