@@ -10,13 +10,25 @@ entity::entity() {
 }
 
 void entity::update(double deltaTime) {
-
+	if (animating) {
+		if (animation.timer < 0) {
+			animation.timer = 1.0 / animation.rate;
+			animation.frame = (animation.frame + 1) % animation.numFrames;
+		}
+		animation.timer -= deltaTime;
+	}
 }
+
+void entity::playAnimation(int _animID, int _numFrames, int _startingFrame, int _rate) {
+	animation = {_animID,_numFrames,_startingFrame,_rate};
+	animating = true;
+}
+
 
 void entity::draw(SDL_Renderer* renderer) {
 	mainSprite->x = position.x;
 	mainSprite->y = position.y;
-	mainSprite->draw(renderer);
+	mainSprite->draw(renderer,animation.frame,animation.animID);
 }
 
 entity* entity::create(vector2 _position, int _direction, sprite* mainSprite) {

@@ -39,10 +39,12 @@ int main(int argc, char* args[]) {
 
 	
 	sprite testMan = sprite(runAnim,10,10,2,2,64);
-	testMan.playAnimation(1,6,8);
 
-	for (int i = 0; i < 10; i++) {
-		entity* soldier = entity::create(vector2(i*3,0), 0, &testMan);
+	for (int i = 0; i < 100; i++) {
+		for (int k = 0; k < 100; k++) {
+			entity* soldier = entity::create(vector2(i * 2, k*2), 0, &testMan);
+			soldier->playAnimation(k % 8, 6, 0, 8);
+		}
 	}
 
 	while (run) {
@@ -73,13 +75,13 @@ int main(int argc, char* args[]) {
 		if (keys.key[SDL_SCANCODE_A]) { camera_x -= 10 * deltaTime; }
 		if (keys.key[SDL_SCANCODE_D]) { camera_x += 10 * deltaTime; }
 		if (keys.key[SDL_SCANCODE_Z]) { 
-			camera_x -= 8/2.0 * deltaTime;
-			camera_y -= 8/2.0 * deltaTime;
+			camera_x -= 16/2.0 * deltaTime;
+			camera_y -= 16/2.0 * deltaTime;
 			camera_viewportWidth += 8 * deltaTime;
 		}
 		if (keys.key[SDL_SCANCODE_C]) { 
-			camera_x += 8/2.0 * deltaTime;
-			camera_y += 8/2.0 * deltaTime;
+			camera_x += 16/2.0 * deltaTime;
+			camera_y += 16/2.0 * deltaTime;
 			camera_viewportWidth -= 8 * deltaTime;
 		}
 
@@ -88,6 +90,7 @@ int main(int argc, char* args[]) {
 		SDL_RenderClear(renderer);
 
 		for (int i = 0; i < entity::numEntities(); i++) {
+			entity::getEntity(i)->update(deltaTime);
 			entity::getEntity(i)->draw(renderer);
 		}
 

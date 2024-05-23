@@ -5,7 +5,11 @@
 #include "sprite.h"
 
 struct animationState {
-
+	int animID=0;
+	int numFrames=0;
+	int frame=0;
+	int rate=0;
+	double timer = 0;
 };
 
 class entity {
@@ -26,11 +30,15 @@ class entity {
 		int direction;
 		vector2 position;
 		sprite* mainSprite;
+		animationState animation;
+		bool animating = false;
 
 		entity();
 		void update(double deltaTime);
 		void draw(SDL_Renderer* renderer);
-		
+		void playAnimation(int animID,int numFrames,int startingFrame,int rate);
+
+
 		static entity* create(vector2 _position, int _direction, sprite* mainSprite);
 		static void destroy(entity* e);
 		static void freeAll();
