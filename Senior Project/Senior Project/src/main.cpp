@@ -74,16 +74,25 @@ int main(int argc, char* args[]) {
 		if (keys.key[SDL_SCANCODE_S]) { camera_y += 10 * deltaTime; }
 		if (keys.key[SDL_SCANCODE_A]) { camera_x -= 10 * deltaTime; }
 		if (keys.key[SDL_SCANCODE_D]) { camera_x += 10 * deltaTime; }
+
+		double netZoomChange = 0;
+		double zoomSpeed = camera_viewportWidth/2;
+
 		if (keys.key[SDL_SCANCODE_Z]) { 
-			camera_x -= 16/2.0 * deltaTime;
-			camera_y -= 16/2.0 * deltaTime;
-			camera_viewportWidth += 8 * deltaTime;
+			netZoomChange = zoomSpeed * deltaTime;
 		}
 		if (keys.key[SDL_SCANCODE_C]) { 
-			camera_x += 16/2.0 * deltaTime;
-			camera_y += 16/2.0 * deltaTime;
-			camera_viewportWidth -= 8 * deltaTime;
+			netZoomChange = -zoomSpeed * deltaTime;
 		}
+
+		int w = 1;
+		int h = 1;
+
+		SDL_GetWindowSizeInPixels(window, &w, &h);
+
+		camera_x = (camera_x - netZoomChange/2.0);
+		camera_y = (camera_y - (netZoomChange*((double)h/w))/2.0);
+		camera_viewportWidth += netZoomChange;
 
 		//Clear the screen
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
