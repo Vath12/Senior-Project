@@ -10,6 +10,9 @@
 #include "sprite.h"
 #include "entity.h"
 #include "vector2.h"
+#include "unit.h"
+#include "god.h"
+
 
 int window_width = 1920;
 int window_height = 1080;
@@ -33,19 +36,26 @@ int main(int argc, char* args[]) {
 
 	SDL_Rect rect = { 150, 150, 100, 100 };
 
-	SDL_Texture* runAnim = loadTexture(renderer,"resources/images/run_alice_sheet.bmp");
+	SDL_Texture* infRun = loadTexture(renderer,"resources/images/run_alice_sheet.bmp");
 
 	double lastTime = getTimeMillis();
 
 	
-	sprite testMan = sprite(runAnim,10,10,2,2,64);
+	sprite infantryRun = sprite(infRun, 10, 10, 2, 2,64);
+	sprite infantryIdle = sprite(infRun, 10, 10, 2, 2, 64);
 
-	for (int i = 0; i < 100; i++) {
-		for (int k = 0; k < 100; k++) {
-			entity* soldier = entity::create(vector2(i * 2, k*2), 0, &testMan);
-			soldier->playAnimation(k % 8, 6, 0, 8);
-		}
-	}
+	
+	unit* soldier = create<unit>(&infantryRun,vector2(10,10),0);
+	soldier->speed = 1;
+	soldier->acceleration = 10;
+	soldier->moveAnimation = &infantryRun;
+	soldier->moveState = {0,6,0,10,0};
+	soldier->idleAnimation = &infantryIdle;
+	soldier->idleState = { 0,6,0,10,0 };
+	soldier->animating = true;
+	soldier->moving = true;
+	soldier->destination = vector2(50, 50);
+	
 
 	while (run) {
 
@@ -98,15 +108,15 @@ int main(int argc, char* args[]) {
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		for (int i = 0; i < entity::numEntities(); i++) {
-			entity::getEntity(i)->update(deltaTime);
-			entity::getEntity(i)->draw(renderer);
+		for (int i = 0; i < numEntities(); i++) {
+			getEntity(i)->update(deltaTime);
+			getEntity(i)->draw(renderer);
 		}
 
 		SDL_RenderPresent(renderer);
 	}
 
-	entity::freeAll();
+	freeAll();
 	unloadTextures();
 	SDL_DestroyWindowSurface(window);
 	SDL_DestroyWindow(window);

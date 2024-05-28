@@ -13,7 +13,10 @@ class vector2 {
 		vector2 operator*(double b);
 		vector2 operator/(double b);
 		vector2 operator*(vector2 b);
-		
+		bool operator != (vector2 b);
+		bool operator == (vector2 b);
+
 		double getMagnitude();
 		vector2 normalized();
+		int getCardinalDirection();
 };

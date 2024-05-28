@@ -30,18 +30,14 @@ class entity {
 		int direction;
 		vector2 position;
 		sprite* mainSprite;
-		animationState animation;
+		animationState* animation;
 		bool animating = false;
 
-		entity();
-		void update(double deltaTime);
+		entity(sprite* _mainSprite,vector2 position,int direction);
+		virtual void update(double deltaTime);
 		void draw(SDL_Renderer* renderer);
-		void playAnimation(int animID,int numFrames,int startingFrame,int rate);
+		virtual void start();
+		virtual void onDestroy();
 
 
-		static entity* create(vector2 _position, int _direction, sprite* mainSprite);
-		static void destroy(entity* e);
-		static void freeAll();
-		static entity* getEntity(int at);
-		static int numEntities();
 };
