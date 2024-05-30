@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <SDL.h>
+#include <algorithm>
 #include "render.h"
 #include "image_renderer.h"
 #include "eventHandler.h"
@@ -11,16 +12,23 @@
 #include "entity.h"
 #include "vector2.h"
 #include "unit.h"
+#include "group.h"
 #include "god.h"
-
+#include "player.h"
+#include <random>
 
 int window_width = 1920;
 int window_height = 1080;
+int mouse_x = 0;
+int mouse_y = 0;
 double camera_x = 0;
 double camera_y = 0;
 double camera_viewportWidth = 50;
 double deltaTime = 0;
 input keys = input();
+SDL_Window* window = NULL;
+Uint32 mouse_state=0;
+Uint32 mouse_state_single=0;
 //spritesheets have 128x128 cells and anims play at 10fps
 
 double getTimeMillis() {
@@ -31,33 +39,49 @@ int main(int argc, char* args[]) {
 	bool run = true;
 
 	sprite::init();
-	SDL_Window* window = render_initialize("SeniorProject", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,1920,1080,SDL_WINDOW_RESIZABLE);
+	window = render_initialize("SeniorProject", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,1920,1080,SDL_WINDOW_RESIZABLE);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window,-1, SDL_RENDERER_ACCELERATED);
 
 	SDL_Rect rect = { 150, 150, 100, 100 };
 
-	SDL_Texture* infRun = loadTexture(renderer,"resources/images/run_alice_sheet.bmp");
+	SDL_Texture* infRun = loadTexture(renderer,"resources/images/inf_rifle_walk_sheet.bmp");
 
 	double lastTime = getTimeMillis();
 
-	
-	sprite infantryRun = sprite(infRun, 10, 10, 2, 2,64);
-	sprite infantryIdle = sprite(infRun, 10, 10, 2, 2, 64);
+	sprite infantryRun = sprite(infRun, 10, 10, 8, 8, 128);
+	sprite infantryIdle = sprite(infRun, 10, 10, 8, 8, 128);
 
-	
-	unit* soldier = create<unit>(&infantryRun,vector2(10,10),0);
-	soldier->speed = 1;
-	soldier->acceleration = 10;
-	soldier->moveAnimation = &infantryRun;
-	soldier->moveState = {0,6,0,10,0};
-	soldier->idleAnimation = &infantryIdle;
-	soldier->idleState = { 0,6,0,10,0 };
-	soldier->animating = true;
-	soldier->moving = true;
-	soldier->destination = vector2(50, 50);
-	
+	srand(3579623);
+
+
+	for (int i = 0; i < 4;i++) {
+		group* squad = createGroup();
+
+		for (int i = 0; i < 7; i++) {
+
+			unit* soldier = create<unit>(&infantryRun, vector2(40 * (rand() % 1000) / 1000.0, 40 * (rand() % 1000) / 1000.0), 0);
+			soldier->speed = 1.1;
+			soldier->acceleration = 100;
+			soldier->moveAnimation = &infantryRun;
+			soldier->moveState = { 0,6,0,10,0 };
+			soldier->idleAnimation = &infantryIdle;
+			soldier->idleState = { 0,6,0,0,0 };
+			soldier->animating = true;
+			soldier->moving = false;
+			soldier->hitbox = vector2(0.65, 1.71);
+			soldier->direction = (rand() % 8);
+			squad->addMember(soldier);
+		}
+	}
+
 
 	while (run) {
+
+		SDL_GetWindowSizeInPixels(window, &window_width, &window_height);
+
+		mouse_state_single = mouse_state;
+		mouse_state = SDL_GetMouseState(&mouse_x, &mouse_y);
+		mouse_state_single = mouse_state & (~mouse_state_single);
 
 		deltaTime = (getTimeMillis() - lastTime);
 		lastTime = getTimeMillis();
@@ -76,42 +100,45 @@ int main(int argc, char* args[]) {
 				handleEvent(&event);
 			}
 		}
-		if (keys.release[SDL_SCANCODE_ESCAPE]) {
-			SDL_ShowCursor(false);
-		}
-		
-		if (keys.key[SDL_SCANCODE_W]) { camera_y -= 10 * deltaTime; }
-		if (keys.key[SDL_SCANCODE_S]) { camera_y += 10 * deltaTime; }
-		if (keys.key[SDL_SCANCODE_A]) { camera_x -= 10 * deltaTime; }
-		if (keys.key[SDL_SCANCODE_D]) { camera_x += 10 * deltaTime; }
-
-		double netZoomChange = 0;
-		double zoomSpeed = camera_viewportWidth/2;
-
-		if (keys.key[SDL_SCANCODE_Z]) { 
-			netZoomChange = zoomSpeed * deltaTime;
-		}
-		if (keys.key[SDL_SCANCODE_C]) { 
-			netZoomChange = -zoomSpeed * deltaTime;
-		}
-
-		int w = 1;
-		int h = 1;
-
-		SDL_GetWindowSizeInPixels(window, &w, &h);
-
-		camera_x = (camera_x - netZoomChange/2.0);
-		camera_y = (camera_y - (netZoomChange*((double)h/w))/2.0);
-		camera_viewportWidth += netZoomChange;
 
 		//Clear the screen
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
+		vector2 cursorPos = cameraToWorld(vector2(mouse_x,mouse_y));
+
+		std::sort(entities.begin(),entities.end(),entity::compareEntity);
+
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+
+		for (int x = 0; x < 100; x++) {
+			for (int y = 0; y < 100; y++) {
+				vector2 p1 = worldToCameraIso(vector2(x,y));
+				vector2 p2 = worldToCameraIso(vector2(x+1, y));
+				vector2 p3 = worldToCameraIso(vector2(x, y+1));
+				vector2 p4 = worldToCameraIso(vector2(x+1, y+1));
+				SDL_RenderDrawLine(renderer,p1.x,p1.y,p2.x,p2.y);
+				SDL_RenderDrawLine(renderer, p2.x, p2.y, p4.x, p4.y);
+				SDL_RenderDrawLine(renderer, p1.x, p1.y, p3.x, p3.y);
+				SDL_RenderDrawLine(renderer, p3.x, p3.y, p4.x, p4.y);
+			}
+		}
+
 		for (int i = 0; i < numEntities(); i++) {
 			getEntity(i)->update(deltaTime);
 			getEntity(i)->draw(renderer);
 		}
+
+		/*
+		SDL_SetRenderDrawColor(renderer,255,255,255,255);
+		for (vector2 v : circleFormation(64)) {
+			vector2 p = worldToCameraIso(v);
+			SDL_RenderDrawPoint(renderer,p.x,p.y);
+		}
+		*/
+		
+
+		playerUpdate(deltaTime, renderer);
 
 		SDL_RenderPresent(renderer);
 	}

@@ -4,6 +4,20 @@
 #include "sprite.h"
 #include "vector2.h"
 
+class group;
+
+enum RANKS {
+	Private = 0,
+	PrivateFirstClass = 1,
+	Corporal = 2,
+	Specialist = 4,
+	Sergeant=5,
+	SecondLiuetenant=6,
+	FirstLiuetenant=7,
+	Captain=8,
+	Major=9
+};
+
 class unit : public entity
 {
 	public:
@@ -26,12 +40,16 @@ class unit : public entity
 		int ammunition = 0;
 		int fuel = 0;
 
-		
+		group* parent;
+		int rank = 0;
+
 		double dash=0;
 		double speed=0;
 		double acceleration=0;
 
 		vector2 velocity;
+
+		vector2 relativePosition;
 
 		vector2 destination;
 		bool moving = false;
@@ -44,9 +62,10 @@ class unit : public entity
 
 		unit(sprite* _mainSprite, vector2 _position, int _direction);
 
+		void moveTo(vector2 destination);
+
 		void update(double deltaTime);
 
-
-
+		void debugDraw(SDL_Renderer* renderer);
 };
 

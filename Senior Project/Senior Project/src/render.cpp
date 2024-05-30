@@ -4,6 +4,22 @@
 #include <SDL.h>
 #include "globals.h"
 
+
+
+
+vector2 worldToCamera(vector2 position) {
+	double scale = window_width / camera_viewportWidth;
+	return vector2(
+		(position.x - camera_x) * scale,
+		(position.y - camera_y) * scale);
+}
+vector2 cameraToWorld(vector2 position) {
+	double scale = window_width / camera_viewportWidth;
+	return vector2(
+		(position.x/scale)+camera_x,
+		(position.y/scale)+camera_y);
+}
+
 SDL_Rect worldToCamera(SDL_Rect* input) {
 	SDL_Rect output = { 
 		(input->x - camera_x) /camera_viewportWidth * window_width,
@@ -33,6 +49,16 @@ SDL_Rect cameraToWorld(SDL_Rect* input) {
 	return output;
 }
 
+
+vector2 cameraToWorldIso(vector2 a) {
+	a = cameraToWorld(a);
+	a = vector2(a.x / tile_halfwidth, a.y / tile_halfheight);
+	return vector2( (a.x+a.y)/2,(a.y-a.x)/2);
+}
+
+vector2 worldToCameraIso(vector2 a) {
+	return worldToCamera(vector2((a.x - a.y)*tile_halfwidth, (a.y + a.x) * tile_halfheight));
+}
 
 
 SDL_Window* render_initialize(const char title[], int x, int y, int width, int height, int flags){

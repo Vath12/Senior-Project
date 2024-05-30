@@ -3,11 +3,13 @@
 class vector2;
 class entity;
 class sprite;
+class group;
 
 //template <typename T>
 //T* create(sprite* _mainSprite, vector2 _position, int _direction);
 
 extern std::vector<entity*> entities;
+extern std::vector<group*> groups;
 
 template <typename T>
 T* create(sprite* _mainSprite, vector2 _position, int _direction) {
@@ -33,8 +35,10 @@ void destroy(T* obj) {
 	delete obj;
 }
 
-template <typename T>
-void destroy(T* obj);
+
+group* createGroup();
+void destroyGroup(group* obj);
+
 
 void freeAll();
 

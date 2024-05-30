@@ -39,8 +39,8 @@ vector2 vector2::operator-(vector2 b) {
 	return vector2(x - b.x, y - b.y);
 }
 
-vector2 vector2::operator*(vector2 b) {
-	return vector2(x * b.x, y * b.y);
+double vector2::operator*(vector2 b) {
+	return x * b.x + y * b.y;
 }
 
 bool vector2::operator!=(vector2 b) {
@@ -52,34 +52,8 @@ bool vector2::operator==(vector2 b) {
 
 int vector2::getCardinalDirection() {
 
-	if (x == 0) {
-		if (y >= 0) {
-			return compass::S;
-		}
-		else {
-			return compass::N;
-		}
-	}
-	double slope = (y/x);
-	if (slope < -2.414) {
-		if (y>0) {
-			return compass::N;
-		}
-		return compass::S;
-	}
-	if (slope < -.414) {
-		if (y > 0) {
-			return compass::NE;
-		}
-		return compass::SE;
-	}
-	if (slope < .414) { 
-		if (y > 0) {
-			return compass::E;
-		}
-		return compass::E;
-	}
-	if (slope < 2.414) {
-		return compass::N;
-	}
+	double angle = atan2(y,x)+3.141592654;
+
+	return fmod(round(angle*(4/3.141592654)+6),8.0);
+
 }

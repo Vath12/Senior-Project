@@ -1,4 +1,5 @@
 #pragma once
+#include "SDL.h"
 
 struct input {
 	bool key[512];
@@ -6,15 +7,23 @@ struct input {
 	bool release[512];
 };
 
+const double tile_halfwidth = 0.5;
+const double tile_halfheight = 0.25;
+
 extern input keys;
 extern double deltaTime;
 extern int window_width;
 extern int window_height;
 extern int window_size;
+extern int mouse_x;
+extern int mouse_y;
+extern Uint32 mouse_state;
+extern Uint32 mouse_state_single;
 
 extern double camera_x;
 extern double camera_y;
 extern double camera_viewportWidth;
+extern SDL_Window* window;
 
 /*
 direction codes:
