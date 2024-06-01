@@ -39,6 +39,8 @@ void sprite::draw(SDL_Renderer* renderer) {
 void sprite::draw(SDL_Renderer* renderer, int srcX, int srcY) {
 
 	SDL_Rect rect = worldToCamera(x,y,w,h);
+	rect.x -= rect.w/2.0;
+	rect.y -= rect.h / 2.0;
 	SDL_Rect srcrect = {srcX*cellSize,srcY*cellSize,cellSize,cellSize};
 
 	renderTexturePortion(renderer,texture,&rect,&srcrect);

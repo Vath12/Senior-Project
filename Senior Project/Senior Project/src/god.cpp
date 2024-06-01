@@ -42,10 +42,3 @@ void freeAll() {
 	}
 	std::cout << count << " groups deleted" << std::endl;
 }
-
-int numEntities() {
-	return entities.size();
-}
-entity* getEntity(int i) {
-	return entities[i];
-}

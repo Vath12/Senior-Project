@@ -54,6 +54,6 @@ int vector2::getCardinalDirection() {
 
 	double angle = atan2(y,x)+3.141592654;
 
-	return fmod(round(angle*(4/3.141592654)+6),8.0);
+	return fmod(round(angle*(4/3.141592654)+7),8.0);
 
 }

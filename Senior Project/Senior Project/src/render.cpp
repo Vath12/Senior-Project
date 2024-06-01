@@ -5,7 +5,19 @@
 #include "globals.h"
 
 
+double worldToCameraScale(double x) {
+	return x / camera_viewportWidth * window_width;
+}
+double cameraToWorldScale(double x) {
+	return x / window_width * camera_viewportWidth;
+}
 
+vector2 worldToCameraScale(vector2 x) {
+	return x / camera_viewportWidth * window_width;
+}
+vector2 cameraToWorldScale(vector2 x) {
+	return x / window_width * camera_viewportWidth;
+}
 
 vector2 worldToCamera(vector2 position) {
 	double scale = window_width / camera_viewportWidth;
@@ -31,9 +43,10 @@ SDL_Rect worldToCamera(SDL_Rect* input) {
 }
 
 SDL_Rect worldToCamera(double x, double y, double w, double h) {
+	vector2 p = worldToCameraIso(vector2(x,y));
 	SDL_Rect output = {
-		(x - camera_x) / camera_viewportWidth * window_width,
-		(y - camera_y) / camera_viewportWidth * window_width,
+		(int)p.x,
+		(int)p.y,
 		w/ camera_viewportWidth * window_width,
 		h / camera_viewportWidth * window_width
 	};
@@ -53,7 +66,7 @@ SDL_Rect cameraToWorld(SDL_Rect* input) {
 vector2 cameraToWorldIso(vector2 a) {
 	a = cameraToWorld(a);
 	a = vector2(a.x / tile_halfwidth, a.y / tile_halfheight);
-	return vector2( (a.x+a.y)/2,(a.y-a.x)/2);
+	return vector2( (a.x+a.y)/2.0,(a.y-a.x)/2.0);
 }
 
 vector2 worldToCameraIso(vector2 a) {

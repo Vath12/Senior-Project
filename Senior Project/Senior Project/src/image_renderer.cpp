@@ -1,5 +1,5 @@
 #include "image_renderer.h"
-#include <stdio.h>
+#include <iostream>
 #include <SDL.h>
 
 std::vector<SDL_Texture*> loadedTextures;
@@ -29,8 +29,11 @@ void renderTexturePortion(SDL_Renderer* renderer, SDL_Texture* texture, SDL_Rect
 }
 
 void unloadTextures() {
-	while (loadedTextures.size() > 1){
-		SDL_DestroyTexture(loadedTextures[loadedTextures.size()]);
+	int count = 0;
+	while (!loadedTextures.empty()){
+		SDL_DestroyTexture(loadedTextures.back());
 		loadedTextures.pop_back();
+		count++;
 	}
+	std::cout << count << " textures freed" << std::endl;
 }

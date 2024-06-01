@@ -42,6 +42,8 @@ class entity {
 		vector2 hitboxCenter;
 		double zPos=0;
 		unsigned long int flags = 0;
+		unsigned short int team;
+
 
 		void setFlag(unsigned long int id,bool state);
 		bool getFlag(unsigned long int id);

@@ -8,6 +8,7 @@
 #include "render.h"
 #include <SDL.h>
 #include <iostream>
+#include "math.h"
 
 void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 
@@ -20,10 +21,10 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 		SDL_ShowCursor(false);
 	}
 
-	if (keys.key[SDL_SCANCODE_W]) { camera_y -= 10 * deltaTime; }
-	if (keys.key[SDL_SCANCODE_S]) { camera_y += 10 * deltaTime; }
-	if (keys.key[SDL_SCANCODE_A]) { camera_x -= 10 * deltaTime; }
-	if (keys.key[SDL_SCANCODE_D]) { camera_x += 10 * deltaTime; }
+	if (keys.key[SDL_SCANCODE_W]) { camera_y -= camera_viewportWidth * 0.2 * deltaTime; }
+	if (keys.key[SDL_SCANCODE_S]) { camera_y += camera_viewportWidth * 0.2 * deltaTime; }
+	if (keys.key[SDL_SCANCODE_A]) { camera_x -= camera_viewportWidth * 0.2 * deltaTime; }
+	if (keys.key[SDL_SCANCODE_D]) { camera_x += camera_viewportWidth * 0.2 * deltaTime; }
 
 	double netZoomChange = 0;
 	double zoomSpeed = camera_viewportWidth / 2;
@@ -35,6 +36,11 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 		netZoomChange = -zoomSpeed * deltaTime;
 	}
 
+
+	netZoomChange = std::min(netZoomChange,max_viewportWidth - camera_viewportWidth);
+	netZoomChange = std::max(netZoomChange, min_viewportWidth - camera_viewportWidth);
+	
+
 	camera_x = (camera_x - netZoomChange / 2.0);
 	camera_y = (camera_y - (netZoomChange * ((double)h / w)) / 2.0);
 	camera_viewportWidth += netZoomChange;
@@ -43,7 +49,9 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 
-	vector2 mouseWorldPos = cameraToWorld(vector2(mouse_x, mouse_y));
+	vector2 mousePos = vector2(mouse_x, mouse_y);
+	vector2 mouseWorldPos = cameraToWorldIso(vector2(mouse_x, mouse_y));
+
 
 	bool select = mouse_state & SDL_BUTTON(SDL_BUTTON_LEFT);
 	bool hoverTerrain = true;
@@ -52,7 +60,8 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 	
 	//selection
 	for (entity* e : entities) {
-		if (pointInBox(mouseWorldPos, e->position + e->hitboxCenter, e->hitbox / 2.0)) {
+		vector2 scrPos = worldToCameraIso(e->position);
+		if (pointInBox(mousePos, scrPos +  worldToCameraScale(e->hitboxCenter), worldToCameraScale(e->hitbox / 2.0))) {
 			if (select) {
 				unit* u = dynamic_cast<unit*>(e);
 				if (u!=nullptr) {
@@ -82,6 +91,7 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 	for (group* g : groups) {
 		if (g->selected) {
 			for (unit* u : g->members) {
+				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 				u->debugDraw(renderer);
 			}
 			if (hoverTerrain && mouse_state_single & SDL_BUTTON(SDL_BUTTON_LEFT)) {

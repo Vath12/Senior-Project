@@ -15,5 +15,11 @@ SDL_Rect cameraToWorld(SDL_Rect* input);
 vector2 worldToCamera(vector2 position);
 vector2 cameraToWorld(vector2 position);
 
+double worldToCameraScale(double x);
+double cameraToWorldScale(double x);
+
+vector2 worldToCameraScale(vector2 x);
+vector2 cameraToWorldScale(vector2 x);
+
 SDL_Window* render_initialize(const char title[], int x, int y, int width, int height, int flags);
 SDL_Surface* get_surface(SDL_Window* window);

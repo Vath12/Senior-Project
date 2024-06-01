@@ -25,6 +25,10 @@ extern double camera_y;
 extern double camera_viewportWidth;
 extern SDL_Window* window;
 
+const double max_viewportWidth = 4096;
+const double min_viewportWidth = 50;
+
+
 /*
 direction codes:
 	0:North

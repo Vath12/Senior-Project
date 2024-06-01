@@ -26,8 +26,8 @@ void entity::update(double deltaTime) {
 
 void entity::draw(SDL_Renderer* renderer) {
 	if (animation != NULL) {
-		mainSprite->x = position.x-mainSprite->w/2.0;
-		mainSprite->y = position.y- mainSprite->h/2.0;
+		mainSprite->x = position.x;
+		mainSprite->y = position.y;
 		mainSprite->draw(renderer, animation->frame, animation->animID);
 	}
 }
