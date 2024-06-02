@@ -73,6 +73,8 @@ class unit : public entity
 		vector2 relativePosition;
 
 		vector2 destination;
+		int destinationDirection;
+
 		bool moving = false;
 		bool attacking = false;
 
@@ -85,6 +87,7 @@ class unit : public entity
 		sprite* moveAnimation;
 		sprite* idleAnimation;
 		sprite* fireAnimation;
+		sprite* dead;
 
 		weapon* armament = nullptr;
 		double attackCooldown;

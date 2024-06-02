@@ -13,6 +13,17 @@
 bool selectDirection = false;
 vector2 movePosition;
 
+void playerDrawBackgroundUI(SDL_Renderer* renderer) {
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	for (group* g : groups) {
+		if (g->selected) {
+			for (unit* u : g->members) {
+				drawEllipsoidPolygon(renderer, u->position, vector2(1, 1) * 0.7);
+			}
+		}
+	}
+}
+
 void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 
 	int w = 1;
@@ -21,7 +32,7 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 	SDL_GetWindowSizeInPixels(window, &w, &h);
 
 	if (keys.release[SDL_SCANCODE_ESCAPE]) {
-		SDL_ShowCursor(false);
+		//SDL_ShowCursor(false);
 	}
 
 	if (keys.key[SDL_SCANCODE_W]) { camera_y -= camera_viewportWidth * 0.2 * deltaTime; }
@@ -83,23 +94,23 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 	
 	//deselection
 	if (mouse_state_single & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
-		for (entity* e : entities) {
-			e->setFlag(ENTITYFLAGS::selected, false);
-		}
-		for (group* g : groups) {
-			g->selected = false;
+		if (!selectDirection) {
+			for (entity* e : entities) {
+				e->setFlag(ENTITYFLAGS::selected, false);
+			}
+			for (group* g : groups) {
+				g->selected = false;
+			}
 		}
 		selectDirection = false;
 	}
 
 	SDL_SetRenderDrawColor(renderer,255,255,255,255);
-
+	
+	//UI and positioning
 	int numSelected = 0;
 	for (group* g : groups) {
 		if (g->selected) {
-			for (unit* u : g->members) {
-				u->debugDraw(renderer);
-			}
 			numSelected++;
 		}
 	}
@@ -110,11 +121,21 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 			selectDirection = false;
 			vector2 dir = (mouseWorldPos - movePosition).normalized();
 			std::vector<vector2> macroFormation = rectangleFormation(numSelected,dir);
-			int i = 0;
+
 			for (group* g : groups) {
 				if (g->selected) {
-					g->moveTo(movePosition + macroFormation[i]*4, dir);
-					i++;
+					int closest=0;
+					double distance = DBL_MAX;
+					for (int x = 0; x < macroFormation.size(); x++) {
+						double d = ( (movePosition + (macroFormation[x]*5.0) ) - g->position).getMagnitude();
+						if (d < distance) {
+							closest = x;
+							distance = d;
+						}
+					}
+					g->moveTo(movePosition + macroFormation[closest]*5.0, dir);
+					macroFormation[closest] = macroFormation.back();
+					macroFormation.pop_back();
 				}
 			}
 			
@@ -134,5 +155,11 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 		vector2 a = worldToCameraIso(mouseWorldPos);
 		vector2 b = worldToCameraIso(movePosition);
 		SDL_RenderDrawLine(renderer,a.x,a.y,b.x,b.y);
+
+		vector2 dir = (mouseWorldPos - movePosition).normalized();
+		std::vector<vector2> macroFormation = rectangleFormation(numSelected, dir);
+		for (vector2 v : macroFormation) {
+			drawEllipsoidPolygon(renderer,movePosition+v*5.0,vector2(1,1)*2);
+		}
 	}
 }

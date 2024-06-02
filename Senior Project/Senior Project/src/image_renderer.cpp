@@ -20,6 +20,10 @@ SDL_Texture* loadTexture(SDL_Renderer* renderer, const char path[]) {
 	return loaded;
 }
 
+void registerTexture(SDL_Texture* T) {
+	loadedTextures.push_back(T);
+}
+
 void renderTexture(SDL_Renderer* renderer, SDL_Texture* texture, SDL_Rect* rect){
 	SDL_RenderCopy(renderer,texture,NULL,rect);
 }

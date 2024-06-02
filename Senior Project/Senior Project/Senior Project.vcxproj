@@ -152,6 +152,7 @@
     <ClCompile Include="src\sprite.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\render.cpp" />
+    <ClCompile Include="src\texture_editor.cpp" />
     <ClCompile Include="src\util.cpp" />
     <ClCompile Include="src\vector2.cpp" />
     <ClCompile Include="src\unit.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="src\quadtree.h" />
     <ClInclude Include="src\sprite.h" />
     <ClInclude Include="src\render.h" />
+    <ClInclude Include="src\texture_editor.h" />
     <ClInclude Include="src\util.h" />
     <ClInclude Include="src\vector2.h" />
     <ClInclude Include="src\unit.h" />

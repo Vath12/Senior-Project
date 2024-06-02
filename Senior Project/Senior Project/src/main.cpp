@@ -19,6 +19,7 @@
 #include <random>
 #include "quadtree.h"
 #include "util.h"
+#include "texture_editor.h"
 
 int window_width = 1920;
 int window_height = 1080;
@@ -52,16 +53,54 @@ int main(int argc, char* args[]) {
 	SDL_Texture* infRun = loadTexture(renderer,"resources/images/inf_rifle_walk_sheet.bmp");
 	SDL_Texture* infIdle = loadTexture(renderer, "resources/images/inf_rifle_idle_sheet.bmp");
 	SDL_Texture* infFire = loadTexture(renderer, "resources/images/inf_rifle_fire_sheet.bmp");
+	SDL_Texture* infDead = loadTexture(renderer, "resources/images/inf_dead_sheet.bmp");
+
+	std::vector<SDL_Color> srcPallate = std::vector<SDL_Color>();
+	srcPallate.push_back(SDL_Color(122, 129, 65, 255));
+	srcPallate.push_back(SDL_Color(143, 151, 74, 255));
+	//backpack
+	srcPallate.push_back(SDL_Color(205, 190, 51, 255));
+	srcPallate.push_back(SDL_Color(168, 156, 49, 255));
+	srcPallate.push_back(SDL_Color(157, 146, 39, 255));
+	srcPallate.push_back(SDL_Color(121, 131, 37, 255));
+	std::vector<SDL_Color> gerPallate = std::vector<SDL_Color>();
+	gerPallate.push_back(SDL_Color(82, 93, 104, 255));
+	gerPallate.push_back(SDL_Color(103, 117, 130, 255));
+
+	gerPallate.push_back(SDL_Color(139, 110, 57, 255));
+	gerPallate.push_back(SDL_Color(91, 71, 34, 255));
+	gerPallate.push_back(SDL_Color(115, 91, 48, 255));
+	gerPallate.push_back(SDL_Color(72, 55, 24, 255));
+
+
+	SDL_Surface* tmp = SDL_LoadBMP("resources/images/inf_rifle_walk_sheet.bmp");
+	SDL_Texture* infRun_G = colorReplace(tmp, renderer, srcPallate, gerPallate);
+	tmp = SDL_LoadBMP("resources/images/inf_rifle_idle_sheet.bmp");
+	SDL_Texture* infIdle_G = colorReplace(tmp, renderer, srcPallate, gerPallate);
+	tmp = SDL_LoadBMP("resources/images/inf_rifle_fire_sheet.bmp");
+	SDL_Texture* infFire_G = colorReplace(tmp, renderer, srcPallate, gerPallate);
+	tmp = SDL_LoadBMP("resources/images/inf_dead_sheet.bmp");
+	SDL_Texture* infDead_G = colorReplace(tmp, renderer, srcPallate, gerPallate);
 
 	double lastTime = getTimeMillis();
 
 	//speed at 10fps is 1.3 m/s
 	sprite infantryRun = sprite(infRun, 10, 10, 8, 8, 128);
-	infantryRun.centerY = 0.55;
+	infantryRun.centerY = 0.57;
 	sprite infantryIdle = sprite(infIdle, 10, 10, 8, 8, 128);
-	infantryIdle.centerY = 0.55;
+	infantryIdle.centerY = 0.57;
 	sprite infantryFire = sprite(infFire, 10, 10, 8, 8, 128);
-	infantryFire.centerY = 0.55;
+	infantryFire.centerY = 0.57;
+	sprite infantryDead = sprite(infDead, 10, 10, 8, 8, 128);
+
+	sprite infantryRun_G = sprite(infRun_G, 10, 10, 8, 8, 128);
+	infantryRun.centerY = 0.57;
+	sprite infantryIdle_G = sprite(infIdle_G, 10, 10, 8, 8, 128);
+	infantryRun.centerY = 0.57;
+	sprite infantryFire_G = sprite(infFire_G, 10, 10, 8, 8, 128);
+	infantryRun.centerY = 0.57;
+	sprite infantryDead_G = sprite(infDead_G, 10, 10, 8, 8, 128);
+	infantryRun.centerY = 0.57;
 
 	weapon rifle = {
 		0.2, //blunt damage
@@ -80,20 +119,21 @@ int main(int argc, char* args[]) {
 
 	srand((unsigned int) getTimeMillis());
 
-	for (int i = 0; i < 64;i++) {
+	for (int i = 0; i < 32;i++) {
 		group* squad = createGroup();
 
 		for (int i = 0; i < 7; i++) {
 
-			unit* soldier = create<unit>(&infantryRun, vector2(10 * (rand() % 1000) / 1000.0, 10 * (rand() % 1000) / 1000.0), 0);
+			unit* soldier = create<unit>(&infantryRun, vector2(30 * (rand() % 1000) / 1000.0, 30 * (rand() % 1000) / 1000.0), 0);
 			soldier->speed = 1.6;
 			soldier->acceleration = 100;
-			soldier->moveAnimation = &infantryRun;
+			soldier->moveAnimation = &infantryRun_G;
 			soldier->moveState = { 0,6,0,12,0 };
-			soldier->idleAnimation = &infantryIdle;
+			soldier->idleAnimation = &infantryIdle_G;
 			soldier->idleState = { 0,1,0,10,0 };
-			soldier->fireAnimation = &infantryFire;
+			soldier->fireAnimation = &infantryFire_G;
 			soldier->fireState = { 0,5,0,10,0 };
+			soldier->dead = &infantryDead_G;
 			soldier->animating = true;
 			soldier->moving = false;
 			soldier->hitboxCenter = vector2(0,-0.35);
@@ -105,12 +145,12 @@ int main(int argc, char* args[]) {
 		}
 	}
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 32; i++) {
 		group* squad = createGroup();
 
 		for (int i = 0; i < 7; i++) {
 
-			unit* soldier = create<unit>(&infantryRun,vector2(110,110) + vector2(10 * (rand() % 1000) / 1000.0, 10 * (rand() % 1000) / 1000.0), 0);
+			unit* soldier = create<unit>(&infantryRun,vector2(120,120) + vector2(30 * (rand() % 1000) / 1000.0, 30 * (rand() % 1000) / 1000.0), 0);
 			soldier->speed = 1.6;
 			soldier->acceleration = 100;
 			soldier->moveAnimation = &infantryRun;
@@ -119,6 +159,7 @@ int main(int argc, char* args[]) {
 			soldier->idleState = { 0,1,0,10,0 };
 			soldier->fireAnimation = &infantryFire;
 			soldier->fireState = { 0,5,0,10,0 };
+			soldier->dead = &infantryDead;
 			soldier->animating = true;
 			soldier->moving = false;
 			soldier->hitboxCenter = vector2(0, -0.35);
@@ -130,8 +171,7 @@ int main(int argc, char* args[]) {
 		}
 	}
 
-	quadtree entity_quadtree = makeTree(&entities,1024,7);
-
+	quadtree entity_quadtree = makeTree(&entities, 1024, 9);
 
 	while (run) {
 
@@ -181,12 +221,14 @@ int main(int argc, char* args[]) {
 			vector2 p2 = worldToCameraIso(vector2(500, y) * scale);
 			SDL_RenderDrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
 		}
-		
+	
+		entity_quadtree = makeTree(&entities, 1024, 9);
+
 		//Drawing Quadtree
-		SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
+		//SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
 		//drawTree(&entity_quadtree, renderer);
 
-		entity_quadtree = makeTree(&entities, 1024, 8);
+		playerDrawBackgroundUI(renderer);
 
 		for (group* g : groups) {
 			g->update();
@@ -208,30 +250,12 @@ int main(int argc, char* args[]) {
 				i--;
 			}
 		}
+
+		drawCorpses(renderer);
 		for (int i = 0; i < entities.size(); i++) {
 			entities[i]->draw(renderer);
 		}
 
-		
-		/*
-		SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
-		vector2 tmpPos = vector2(80, 80);
-		double tmpRadius = 90;
-		SDL_Point points[17];
-
-		for (int i = 0; i < 17; i++) {
-			vector2 p = (worldToCameraIso(tmpPos + vector2(sin(M_PI * 2 * i / 16.0), cos(M_PI * 2 * i / 16.0)) * tmpRadius));
-			points[i] = { (int)p.x,(int)p.y };
-		}
-		SDL_RenderDrawLines(renderer, points, 17);
-		std::vector<entity*> result = findInRadius(&entity_quadtree, tmpPos, tmpRadius);
-		for (entity* e : result) {
-			unit* u = dynamic_cast<unit*>(e);
-			if (u != nullptr) {
-				u->debugDraw(renderer);
-			}
-		}
-		*/
 
 		drawFX(renderer, deltaTime);
 		playerUpdate(deltaTime, renderer);

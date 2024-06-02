@@ -42,6 +42,7 @@ void unit::update(double deltaTime){
 		if (d.getMagnitude() < 0.05) {
 			moving = false;
 			velocity = vector2();
+			direction = destinationDirection;
 		}
 		else {
 			d = d.normalized();
@@ -80,6 +81,9 @@ void unit::update(double deltaTime){
 	}
 
 	if (vp <= 0) {
+		if (dead != nullptr) {
+			newCorpse(dead,position,rand()%8);
+		}
 		destroy(this);
 	}
 }

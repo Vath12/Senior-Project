@@ -4,6 +4,15 @@
 #include <SDL.h>
 #include "globals.h"
 
+void drawEllipsoidPolygon(SDL_Renderer* renderer, vector2 center, vector2 radii) {
+
+	SDL_Point points[17];
+	for (int i = 0; i < 17; i++) {
+		vector2 p = (worldToCameraIso(center + vector2(sin(M_PI * 2 * i / 16.0) * radii.x, cos(M_PI * 2 * i / 16.0)*radii.y )));
+		points[i] = { (int)p.x,(int)p.y };
+	}
+	SDL_RenderDrawLines(renderer, points, 17);
+}
 
 double worldToCameraScale(double x) {
 	return x / camera_viewportWidth * window_width;

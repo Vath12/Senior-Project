@@ -5,6 +5,8 @@
 #include <vector>
 #include "vector2.h"
 
+void drawEllipsoidPolygon(SDL_Renderer* renderer,  vector2 center, vector2 radii);
+
 vector2 cameraToWorldIso(vector2 a);
 vector2 worldToCameraIso(vector2 a);
 

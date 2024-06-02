@@ -101,9 +101,11 @@ void group::moveTo(vector2 destination,vector2 direction) {
 		members[i]->relativePosition = pos*2;
 		i++;
 	}
+	int d = direction.getCardinalDirection();
 	for (unit* u: members) {
 		if (u != nullptr) {
 			u->moveTo(destination + u->relativePosition);
+			u->destinationDirection = d;
 		}
 	}
 }

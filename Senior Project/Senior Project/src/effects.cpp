@@ -4,13 +4,34 @@
 #include <vector>
 #include "render.h"
 #include <iostream>
+#include <algorithm>
+#include "sprite.h"
 
 std::vector<bulletTracer> tracers = std::vector<bulletTracer>();
+std::vector<corpse> corpses = std::vector<corpse>();
+
+bool compareCorpse(corpse A, corpse B) {
+	return worldToCameraIso(A.position).y < worldToCameraIso(B.position).y;
+}
+
+void newCorpse(sprite* img, vector2 position, int direction) {
+	corpses.push_back(corpse(img,position,direction));
+}
 
 void newBulletFX(vector2 muzzle, vector2 target) {
 	vector2 d = (target - muzzle);
 	tracers.push_back({muzzle,d.getMagnitude(),d.normalized()});
 }
+
+void drawCorpses(SDL_Renderer* r) {
+	std::sort(corpses.begin(), corpses.end(), compareCorpse);
+	for (corpse c : corpses) {
+		c.img->x = c.position.x;
+		c.img->y = c.position.y;
+		c.img->draw(r,0,c.direction);
+	}
+}
+
 void drawFX(SDL_Renderer* renderer, double deltaTime) {
 	
 	SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
@@ -40,7 +61,6 @@ void drawFX(SDL_Renderer* renderer, double deltaTime) {
 	}
 
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-
 }
 void freeFX() {
 
