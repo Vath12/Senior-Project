@@ -12,7 +12,8 @@ quadtree makeTree(std::vector<entity*>* source, double size, int maxSubdivision)
 
 	quadtree out = quadtree{
 		size,
-		std::vector<node>()
+		std::vector<node>(),
+		std::vector < std::vector<entity*>>()
 	};
 	
 	out.nodes.push_back(node());
@@ -45,15 +46,16 @@ quadtree makeTree(std::vector<entity*>* source, double size, int maxSubdivision)
 				
 			depth++;
 
+			
+
 			if (depth == maxSubdivision) {
 				if (out.nodes[current].children[qx][qy] == -1) {
-					out.nodes.push_back(leaf());
+					out.residents.push_back(std::vector<entity*>());
+					out.nodes.push_back(node());
+					out.nodes.back().data = out.residents.size() - 1;
 					out.nodes[current].children[qx][qy] = out.nodes.size()-1;
-					out.nodes.back().parent = current;
-					((leaf)out.nodes.back()).residents = std::vector<entity*>();
 				}
-				leaf cell = (leaf)out.nodes[out.nodes[current].children[qx][qy]];
-				cell.residents.push_back(e);
+				out.residents[ out.nodes[out.nodes[current].children[qx][qy]].data].push_back(e);
 			}
 			else {
 				position = position + vector2( ((qx * 2) - 1) * bound/2.0, ((qy * 2) - 1) * bound/2.0);
@@ -62,24 +64,32 @@ quadtree makeTree(std::vector<entity*>* source, double size, int maxSubdivision)
 					out.nodes.push_back(node());
 					out.nodes[current].children[qx][qy] = out.nodes.size()-1;
 					out.nodes.back().parent = current;
-					//std::cout << qx << "," << qy << " ";
-					//std::cout << position.x << "," << position.y << std::endl;
 				}
 				current = out.nodes[current].children[qx][qy];
 			}
 		}
 	}
+
 	return out;
 
 }
 
-double boxIntersectCircle(vector2 origin, double boxSize, vector2 circlePos, double radius) {
+bool boxIntersectCircle(vector2 origin, double boxSize, vector2 circlePos, double radius) {
 	vector2 quadrant = vector2(1,1);
 	circlePos = circlePos - origin;
 	if (circlePos.x < 0) { quadrant.x = -1; }
 	if (circlePos.y < 0) { quadrant.y = -1; }
 	double corner = 0.70710678118 * boxSize;
-	return (circlePos - (quadrant * corner)).getMagnitude();
+	return (circlePos - (quadrant * corner)).getMagnitude() < radius;
+}
+
+bool circleEncloseBox(vector2 origin, double boxSize, vector2 circlePos, double radius) {
+	vector2 quadrant = vector2(-1, -1);
+	circlePos = circlePos - origin;
+	if (circlePos.x < 0) { quadrant.x = 1; }
+	if (circlePos.y < 0) { quadrant.y = 1; }
+	double corner = 0.70710678118 * boxSize;
+	return (circlePos - (quadrant * corner)).getMagnitude() < radius;
 }
 
 
@@ -87,29 +97,46 @@ void findInRadiusRecursive(std::vector<entity*>* output, quadtree* tree, int nod
 	
 	bool isLeaf = true;
 	double subBound = bound / 2.0;
+	
+	for (int i = 0; i < 4; i++) {
 
-	for (int sx = 0; sx < 2; sx++) {
-		for (int sy = 0; sy < 2; sy++) {
-			int subNode = tree->nodes[node].children[sx][sy];
+		int sx = 0;
+		int sy = 0;
 
-			if (subNode != -1) {
-				isLeaf = false;
-				vector2 subBPos = bPos + vector2(sx, sy) * subBound;
+		if (i == 1 || i == 3) { sy = 1; }
+		if (i == 2 || i == 3) { sx = 1; }
 
-				double intersection = boxIntersectCircle(bPos, bound, position, radius);
-				bool subEnclosed = enclosed || intersection >= (1.41421356237 * bound)-radius;
+		int subNode = tree->nodes[node].children[sx][sy];
 
-				if (subEnclosed || intersection <= radius || pointInBox(position,bPos + vector2(subBound, subBound)/2.0,vector2(subBound,subBound)/2.0)) {
-					std::cout << subBPos.x << " " << subBPos.y << std::endl;
-					findInRadiusRecursive(output, tree, subNode, position, radius, subBPos, subBound, subEnclosed);
-				}
+		if (subNode != -1) {
+			isLeaf = false;
+			vector2 subBPos = bPos + (vector2(sx, sy) * subBound);
+
+			bool intersection = boxIntersectCircle(subBPos, subBound, position, radius);
+			bool subEnclosed = enclosed || circleEncloseBox(subBPos, subBound, position, radius);
+
+			if (subEnclosed || intersection || pointInBox(position,subBPos + vector2(subBound, subBound)/2.0,vector2(subBound,subBound)/2.0)) {
+				findInRadiusRecursive(output, tree, subNode, position, radius, subBPos, subBound, subEnclosed);
 			}
 		}
+		
 	}
 
 	if (isLeaf) {
-		for (int i = 0; i < ((leaf)tree->nodes[node]).residents.size(); i++) {
-			output->push_back(((leaf)tree->nodes[node]).residents[i]);
+
+		if (enclosed) {
+			for (entity* e : tree->residents[tree->nodes[node].data]) {
+				if (e != nullptr) {
+					output->push_back(e);
+				}
+			}
+		}
+		else {
+			for (entity* e : tree->residents[tree->nodes[node].data]) {
+				if (e != nullptr && (e->position - position).getMagnitude() <= radius) {
+					output->push_back(e);
+				}
+			}
 		}
 	}
 }
@@ -122,39 +149,42 @@ std::vector<entity*> findInRadius(quadtree* tree, vector2 position, double radiu
 
 void drawTreeRecursive(quadtree* tree, int node,vector2 a,vector2 b,SDL_Renderer* r) {
 	
-	bool leaf = true;
-	if (tree->nodes[node].children[0][0] != -1) {
-		leaf = false;
-		drawTreeRecursive(tree, tree->nodes[node].children[0][0], a, b/2.0,r);
-	}
-	if (tree->nodes[node].children[1][0] != -1) {
-		leaf = false;
-		drawTreeRecursive(tree, tree->nodes[node].children[1][0], a+vector2(b.x / 2.0,0), b / 2.0,r);
-	}
-	if (tree->nodes[node].children[0][1] != -1) {
-		leaf = false;
-		drawTreeRecursive(tree, tree->nodes[node].children[0][1], a + vector2(0, b.x / 2.0), b/2.0,r);
-	}
-	if (tree->nodes[node].children[1][1] != -1) {
-		leaf = false;
-		drawTreeRecursive(tree, tree->nodes[node].children[1][1], a + b/2.0, b/2.0,r);
-	}
-	//if (leaf) {
-		//std::cout << "{leaf:"<<a.x<<","<<a.y<<","<< b.x << "," << b.y << "}"<<std::endl;
-		SDL_Point points[5];
-		vector2 pts[] =
-		{
-			a,
-			a + vector2(b.x,0),
-			a + b,
-			a + vector2(0,b.y),
-		};
-		for (int i = 0; i < 4; i++) {
-			pts[i] = worldToCameraIso(pts[i]);
-			points[i] = { (int)pts[i].x,(int)pts[i].y };
+	bool isLeaf = true;
+
+	for (int i = 0; i < 4; i++) {
+
+		int sx = 0;
+		int sy = 0;
+
+		if (i == 1 || i == 3) { sy = 1; }
+		if (i == 2 || i == 3) { sx = 1; }
+
+		int subNode = tree->nodes[node].children[sx][sy];
+
+		if (subNode != -1) {
+			isLeaf = false;
+			vector2 subBPos = a + (vector2(sx*b.x/2.0, sy*b.y/2.0));
+			drawTreeRecursive(tree, subNode, subBPos, b / 2.0, r);
 		}
-		points[4] = points[0];
-		SDL_RenderDrawLines(r,points,5);
+
+	}
+	
+	//if (leaf) {
+
+	SDL_Point points[5];
+	vector2 pts[] =
+	{
+		a,
+		a + vector2(b.x,0),
+		a + b,
+		a + vector2(0,b.y),
+	};
+	for (int i = 0; i < 4; i++) {
+		pts[i] = worldToCameraIso(pts[i]);
+		points[i] = { (int)pts[i].x,(int)pts[i].y };
+	}
+	points[4] = points[0];
+	SDL_RenderDrawLines(r,points,5);
 
 	//}
 

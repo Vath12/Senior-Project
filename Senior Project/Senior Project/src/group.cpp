@@ -5,7 +5,7 @@
 #include "math.h";
 #include "god.h"
 
-std::vector<vector2> circleFormation(int units) {
+std::vector<vector2> circleFormation(int units,vector2 direction) {
 	std::vector<vector2> output = std::vector<vector2>();
 	double radius = 0;
 	double angle = 0;
@@ -30,8 +30,21 @@ std::vector<vector2> circleFormation(int units) {
 	return output;
 }
 
-std::vector<vector2> triangleFormation(int units) {
+std::vector<vector2> triangleFormation(int units,vector2 direction) {
 	return std::vector<vector2>();
+}
+
+std::vector<vector2> rectangleFormation(int units, vector2 direction) {
+	std::vector<vector2> output = std::vector<vector2>();
+
+	vector2 perpendicular = vector2(direction.y, -direction.x);
+	vector2 position = perpendicular * -((units-1) / 2.0);
+	for (int i = 0; i < units; i++) {
+		output.push_back(position);
+		position = position + perpendicular;
+	}
+
+	return output;
 }
 
 group::group() {
@@ -43,14 +56,10 @@ group::group() {
 void group::update() {
 	if (!members.empty()) {
 		position = vector2(0.0,0.0);
-		dispersion = 0.0;
 		for (unit* u : members) {
 			position = position + u->position;
 		}
 		position = position / members.size();
-		for (unit* u : members) {
-			dispersion = fmax(dispersion, (u->position-position).getMagnitude());
-		}
 	}
 }
 
@@ -86,13 +95,15 @@ void group::addMember(unit* newMember) {
 	members.push_back(newMember);
 	newMember->parent = this;
 }
-void group::moveTo(vector2 destination) {
+void group::moveTo(vector2 destination,vector2 direction) {
 	int i = 0;
-	for (vector2 pos : circleFormation(members.size())) {
-		members[i]->relativePosition = pos;
+	for (vector2 pos : circleFormation(members.size(),direction)) {
+		members[i]->relativePosition = pos*2;
 		i++;
 	}
 	for (unit* u: members) {
-		u->moveTo(destination + u->relativePosition);
+		if (u != nullptr) {
+			u->moveTo(destination + u->relativePosition);
+		}
 	}
 }

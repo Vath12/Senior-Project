@@ -18,6 +18,7 @@
 #include "effects.h"
 #include <random>
 #include "quadtree.h"
+#include "util.h"
 
 int window_width = 1920;
 int window_height = 1080;
@@ -31,7 +32,8 @@ input keys = input();
 SDL_Window* window = NULL;
 Uint32 mouse_state=0;
 Uint32 mouse_state_single=0;
-//quadtree entity_quadtree;
+quadtree entity_quadtree;
+
 //spritesheets have 128x128 cells and anims play at 10fps
 
 double getTimeMillis() {
@@ -53,43 +55,48 @@ int main(int argc, char* args[]) {
 
 	double lastTime = getTimeMillis();
 
+	//speed at 10fps is 1.3 m/s
 	sprite infantryRun = sprite(infRun, 10, 10, 8, 8, 128);
+	infantryRun.centerY = 0.55;
 	sprite infantryIdle = sprite(infIdle, 10, 10, 8, 8, 128);
+	infantryIdle.centerY = 0.55;
 	sprite infantryFire = sprite(infFire, 10, 10, 8, 8, 128);
+	infantryFire.centerY = 0.55;
 
 	weapon rifle = {
 		0.2, //blunt damage
 		6, //penetration
 		0.7, //post penetration damage
-		80, //range
+		100, //range
 		0.1, //accuracy
 		0.75, //handling
 		0.6,//leading
-		90, //fireRate
+		30, //fireRate
 		5, //magazineSize
 		4, //reloadTime
-		0.9,//movementSpeedPenalty
-		0.85 //movementAccuracyPenalty
+		0.8,//movementSpeedPenalty
+		0.7 //movementAccuracyPenalty
 	};
 
 	srand((unsigned int) getTimeMillis());
 
-	for (int i = 0; i < 1;i++) {
+	for (int i = 0; i < 64;i++) {
 		group* squad = createGroup();
 
 		for (int i = 0; i < 7; i++) {
 
 			unit* soldier = create<unit>(&infantryRun, vector2(10 * (rand() % 1000) / 1000.0, 10 * (rand() % 1000) / 1000.0), 0);
-			soldier->speed = 1.3;
+			soldier->speed = 1.6;
 			soldier->acceleration = 100;
 			soldier->moveAnimation = &infantryRun;
-			soldier->moveState = { 0,6,0,10,0 };
+			soldier->moveState = { 0,6,0,12,0 };
 			soldier->idleAnimation = &infantryIdle;
 			soldier->idleState = { 0,1,0,10,0 };
 			soldier->fireAnimation = &infantryFire;
-			soldier->fireState = { 0,5,0,8,0 };
+			soldier->fireState = { 0,5,0,10,0 };
 			soldier->animating = true;
 			soldier->moving = false;
+			soldier->hitboxCenter = vector2(0,-0.35);
 			soldier->hitbox = vector2(0.65, 1.71);
 			soldier->direction = (rand() % 8);
 			soldier->armament = &rifle;
@@ -98,22 +105,23 @@ int main(int argc, char* args[]) {
 		}
 	}
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 64; i++) {
 		group* squad = createGroup();
 
 		for (int i = 0; i < 7; i++) {
 
-			unit* soldier = create<unit>(&infantryRun,vector2(40,40) + vector2(10 * (rand() % 1000) / 1000.0, 10 * (rand() % 1000) / 1000.0), 0);
-			soldier->speed = 1.3;
+			unit* soldier = create<unit>(&infantryRun,vector2(110,110) + vector2(10 * (rand() % 1000) / 1000.0, 10 * (rand() % 1000) / 1000.0), 0);
+			soldier->speed = 1.6;
 			soldier->acceleration = 100;
 			soldier->moveAnimation = &infantryRun;
-			soldier->moveState = { 0,6,0,10,0 };
+			soldier->moveState = { 0,6,0,12,0 };
 			soldier->idleAnimation = &infantryIdle;
 			soldier->idleState = { 0,1,0,10,0 };
 			soldier->fireAnimation = &infantryFire;
-			soldier->fireState = { 0,5,0,16,0 };
+			soldier->fireState = { 0,5,0,10,0 };
 			soldier->animating = true;
 			soldier->moving = false;
+			soldier->hitboxCenter = vector2(0, -0.35);
 			soldier->hitbox = vector2(0.65, 1.71);
 			soldier->direction = (rand() % 8);
 			soldier->armament = &rifle;
@@ -161,7 +169,7 @@ int main(int argc, char* args[]) {
 
 		SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
 
-		
+		//Drawing Grid
 		double scale = 5;
 		for (int x = -500; x < 500; x++) {
 			vector2 p1 = worldToCameraIso(vector2(x, -500) * scale);
@@ -174,30 +182,22 @@ int main(int argc, char* args[]) {
 			SDL_RenderDrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
 		}
 		
-
-		entity_quadtree = makeTree(&entities, 1024, 7);
+		//Drawing Quadtree
 		SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
-		drawTree(&entity_quadtree, renderer);
+		//drawTree(&entity_quadtree, renderer);
 
+		entity_quadtree = makeTree(&entities, 1024, 8);
 
 		for (group* g : groups) {
 			g->update();
 		}
 
-		SDL_SetRenderDrawColor(renderer,255,255,0,255);
-		for (group* g : groups) {
-
-			for (unit* u : g->members) {
-				SDL_Point points[17];
-
-				for (int i = 0; i < 17; i++) {
-					vector2 p = (worldToCameraIso(u->position + vector2(sin(M_PI * 2 * i / 16.0), cos(M_PI * 2 * i / 16.0)) * u->armament->range));
-					points[i] = { (int)p.x,(int)p.y };
-				}
-
-				//SDL_RenderDrawLines(renderer, points, 17);
+		for (entity* e : entities) {
+			unit* u = dynamic_cast<unit*>(e);
+			if (u != nullptr && u->target == nullptr && u->searchCooldown<=0) {
+				u->findTarget(&entity_quadtree);
+				u->searchCooldown = 0.1 + (randomDouble() * 0.4);
 			}
-
 		}
 
 		//loops are separate in case units are deleted
@@ -213,9 +213,10 @@ int main(int argc, char* args[]) {
 		}
 
 		
+		/*
 		SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
-		vector2 tmpPos = vector2(0, 0);
-		double tmpRadius = 50;
+		vector2 tmpPos = vector2(80, 80);
+		double tmpRadius = 90;
 		SDL_Point points[17];
 
 		for (int i = 0; i < 17; i++) {
@@ -230,9 +231,9 @@ int main(int argc, char* args[]) {
 				u->debugDraw(renderer);
 			}
 		}
-		
-		drawFX(renderer, deltaTime);
+		*/
 
+		drawFX(renderer, deltaTime);
 		playerUpdate(deltaTime, renderer);
 
 		SDL_RenderPresent(renderer);

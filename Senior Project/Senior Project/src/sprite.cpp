@@ -36,11 +36,19 @@ void sprite::draw(SDL_Renderer* renderer) {
 	renderTexturePortion(renderer, texture, &rect, NULL);
 }
 
-void sprite::draw(SDL_Renderer* renderer, int srcX, int srcY) {
+void sprite::draw(SDL_Renderer* renderer, int srcX, int srcY, double anchorX, double anchorY) {
+
+	if (anchorX == -1) {
+		anchorX = centerX;
+	}
+	if (anchorY == -1) {
+		anchorY = centerY;
+	}
+
 
 	SDL_Rect rect = worldToCamera(x,y,w,h);
-	rect.x -= rect.w/2.0;
-	rect.y -= rect.h / 2.0;
+	rect.x -= rect.w * centerX;
+	rect.y -= rect.h * centerY;
 	SDL_Rect srcrect = {srcX*cellSize,srcY*cellSize,cellSize,cellSize};
 
 	renderTexturePortion(renderer,texture,&rect,&srcrect);

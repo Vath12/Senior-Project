@@ -7,6 +7,9 @@ class sprite {
 
 		static void init();
 
+		double centerX=0.5;
+		double centerY=0.5;
+
 		double x = 0;
 		double y = 0;
 		double w = 0;
@@ -19,5 +22,5 @@ class sprite {
 		sprite(SDL_Texture* texture, double x, double y, double w, double h,int cellSize);
 
 		void draw(SDL_Renderer* renderer);
-		void draw(SDL_Renderer* renderer,int srcX,int srcY);
+		void draw(SDL_Renderer* renderer,int srcX,int srcY,double anchorX=-1,double anchorY=-1);
 };

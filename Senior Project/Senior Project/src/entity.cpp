@@ -4,6 +4,7 @@
 #include <iostream>
 #include "entity.h"
 #include "vector2.h"
+#include "render.h"
 
 entity::entity(sprite* _mainSprite,vector2 _position, int _direction) {
 	mainSprite = _mainSprite;
@@ -14,7 +15,7 @@ entity::entity(sprite* _mainSprite,vector2 _position, int _direction) {
 }
 
 void entity::update(double deltaTime) {
-	zPos = (position.y - (hitbox.y / 2.0) + hitboxCenter.y);
+	zPos = (worldToCameraIso(position).y - (hitbox.y / 2.0) + hitboxCenter.y);
 	if (animating && animation != NULL) {
 		if (animation->timer < 0) {
 			animation->timer = 1.0 / animation->rate;
@@ -28,7 +29,7 @@ void entity::draw(SDL_Renderer* renderer) {
 	if (animation != NULL) {
 		mainSprite->x = position.x;
 		mainSprite->y = position.y;
-		mainSprite->draw(renderer, animation->frame, animation->animID);
+		mainSprite->draw(renderer, animation->frame, animation->animID,0.5,0.5);
 	}
 }
 

@@ -10,15 +10,13 @@ struct node {
 		{-1,-1},
 		{-1,-1}
 	};
-};
-
-struct leaf : node {
-	std::vector<entity*> residents;
+	int data = -1;
 };
 
 struct quadtree {
 	double bound;
 	std::vector<node> nodes;
+	std::vector < std::vector<entity*>> residents;
 };
 
 quadtree makeTree(std::vector<entity*>* source,double size,int maxSubdivision);

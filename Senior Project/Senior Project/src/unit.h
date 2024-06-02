@@ -3,6 +3,7 @@
 #include "entity.h"
 #include "sprite.h"
 #include "vector2.h"
+#include "quadtree.h"
 
 class group;
 
@@ -79,12 +80,15 @@ class unit : public entity
 		animationState idleState;
 		animationState fireState;
 
+		unit* target;
+
 		sprite* moveAnimation;
 		sprite* idleAnimation;
 		sprite* fireAnimation;
 
 		weapon* armament = nullptr;
 		double attackCooldown;
+		double searchCooldown;
 		int magazine;
 
 		unit(sprite* _mainSprite, vector2 _position, int _direction);
@@ -94,6 +98,8 @@ class unit : public entity
 		void update(double deltaTime);
 
 		void debugDraw(SDL_Renderer* renderer);
+
+		void findTarget(quadtree* tree);
 
 		bool attackReady();
 

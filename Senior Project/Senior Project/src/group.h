@@ -8,7 +8,7 @@ class group
 
 	public:
 		vector2 position;
-		double dispersion = 0.0;
+		vector2 direction;
 		std::vector<unit*> members;
 		int team = 0;
 		double maxRange = 0;
@@ -17,12 +17,13 @@ class group
 		void setFlag(unsigned long int id, bool state);
 		void addMember(unit* newMember);
 		void removeMember(unit* oldMember);
-		void moveTo(vector2 destination);
+		void moveTo(vector2 destination,vector2 direction);
 		void update();
 
 };
 
-std::vector<vector2> circleFormation(int units);
+std::vector<vector2> circleFormation(int units,vector2 direction);
 
-std::vector<vector2> triangleFormation(int units);
+std::vector<vector2> triangleFormation(int units,vector2 direction);
 
+std::vector<vector2> rectangleFormation(int units,vector2 direction);

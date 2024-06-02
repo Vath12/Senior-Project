@@ -10,7 +10,7 @@
 #include "god.h"
 #include "effects.h"
 #include "math.h"
-
+#include "quadtree.h"
 
 unit::unit(sprite* _mainSprite, vector2 _position, int _direction) :
 	entity(_mainSprite, _position, _direction) {
@@ -57,9 +57,20 @@ void unit::update(double deltaTime){
 		animation = &idleState;
 		animation->animID = direction;
 	}
-	
+
+	if (attackReady() && target != nullptr) {
+		vector2 d = target->position - position;
+		if (d.getMagnitude() <= armament->range) {
+			attack(target);
+		}
+		else {
+			target = nullptr;
+		}
+	}
 
 	entity::update(deltaTime);
+
+	searchCooldown -= deltaTime;
 
 	if (moving && armament != nullptr) {
 		attackCooldown -= deltaTime*armament->movementSpeedPenalty;
@@ -70,6 +81,36 @@ void unit::update(double deltaTime){
 
 	if (vp <= 0) {
 		destroy(this);
+	}
+}
+
+void unit::findTarget(quadtree* tree) {
+
+	if (attackReady()) {
+		std::vector<entity*> targets = findInRadius(tree, position, armament->range);
+		int i = 0;
+		int count = 5;
+		double best = 10000000;
+		unit* newTarget = nullptr;
+		while (!targets.empty() && count > 0){
+
+			(i = (abs(rand()) % targets.size()));
+
+			unit* u = dynamic_cast<unit*>(targets[i]);
+			if (u != nullptr && u->team != team) {
+				double score = (u->position - position).getMagnitude();
+				if (score < best-10) {
+					newTarget = u;
+					best = score;
+					count--;
+				}
+			}
+			targets[i] = targets.back();
+			targets.pop_back();
+		}
+		if (newTarget != nullptr) {
+			target = newTarget;
+		}
 	}
 }
 
@@ -113,7 +154,7 @@ void unit::attack(unit* target) {
 		target->takeDamage(armament);
 	}
 	else {
-		newBulletFX(position, position+ (d+ (randomVector() * 0.0001 * range)).normalized()*armament->range);
+		newBulletFX(position, position+ (d+ (randomVector() * 0.003 * range)).normalized()*armament->range);
 	}
 }
 

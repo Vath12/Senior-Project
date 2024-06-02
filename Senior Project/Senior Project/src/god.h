@@ -31,13 +31,15 @@ void destroy(T* obj) {
 	for (int i = 0; i < entities.size(); i++) {
 		if (obj == entities[i]) {
 
-			/*unit* u = dynamic_cast<unit*>(obj);
+			/*
+			unit* u = dynamic_cast<unit*>(obj);
 			if (u != nullptr) {
 				if (u->parent != nullptr) {
 					u->parent->removeMember(u);
 				}
 			}
 			*/
+			
 
 			std::cout << "deleting unit " << i << "/" << entities.size();
 

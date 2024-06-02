@@ -24,10 +24,12 @@ void drawFX(SDL_Renderer* renderer, double deltaTime) {
 		t->time += deltaTime;
 
 
-		a = worldToCamera(a);
-		b = worldToCamera(b);
+		a = worldToCameraIso(a);
+		b = worldToCameraIso(b);
 		
-		SDL_SetRenderDrawColor(renderer,255,255,0, (1-(t->time/1.0)) * 255);
+		double progress = (a - t->from).getMagnitude() / t->distance;
+
+		SDL_SetRenderDrawColor(renderer,255,255,0, progress * 255);
 		SDL_RenderDrawLine(renderer,a.x,a.y,b.x,b.y);
 
 		if ( (t->speed * t->time) > t->distance) {

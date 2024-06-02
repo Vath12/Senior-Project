@@ -10,6 +10,9 @@
 #include <iostream>
 #include "math.h"
 
+bool selectDirection = false;
+vector2 movePosition;
+
 void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 
 	int w = 1;
@@ -62,7 +65,7 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 	for (entity* e : entities) {
 		vector2 scrPos = worldToCameraIso(e->position);
 		if (pointInBox(mousePos, scrPos +  worldToCameraScale(e->hitboxCenter), worldToCameraScale(e->hitbox / 2.0))) {
-			if (select) {
+			if (!selectDirection && select && e != nullptr) {
 				unit* u = dynamic_cast<unit*>(e);
 				if (u!=nullptr) {
 					if (u->parent != nullptr) {
@@ -77,7 +80,7 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 			break;
 		}
 	}
-
+	
 	//deselection
 	if (mouse_state_single & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
 		for (entity* e : entities) {
@@ -86,18 +89,50 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 		for (group* g : groups) {
 			g->selected = false;
 		}
+		selectDirection = false;
 	}
 
+	SDL_SetRenderDrawColor(renderer,255,255,255,255);
+
+	int numSelected = 0;
 	for (group* g : groups) {
 		if (g->selected) {
 			for (unit* u : g->members) {
-				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 				u->debugDraw(renderer);
 			}
-			if (hoverTerrain && mouse_state_single & SDL_BUTTON(SDL_BUTTON_LEFT)) {
-				g->moveTo(mouseWorldPos);
+			numSelected++;
+		}
+	}
+
+	if (mouse_state_single & SDL_BUTTON(SDL_BUTTON_LEFT) && numSelected>0) {
+		if (selectDirection) {
+			
+			selectDirection = false;
+			vector2 dir = (mouseWorldPos - movePosition).normalized();
+			std::vector<vector2> macroFormation = rectangleFormation(numSelected,dir);
+			int i = 0;
+			for (group* g : groups) {
+				if (g->selected) {
+					g->moveTo(movePosition + macroFormation[i]*4, dir);
+					i++;
+				}
+			}
+			
+		}
+		else {
+			if (hoverTerrain) {
+				movePosition = mouseWorldPos;
+				selectDirection = true;
 			}
 		}
 	}
-	
+
+		
+
+	if (selectDirection) {
+		SDL_SetRenderDrawColor(renderer,255,255,255,255);
+		vector2 a = worldToCameraIso(mouseWorldPos);
+		vector2 b = worldToCameraIso(movePosition);
+		SDL_RenderDrawLine(renderer,a.x,a.y,b.x,b.y);
+	}
 }
