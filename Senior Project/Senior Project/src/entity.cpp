@@ -15,7 +15,6 @@ entity::entity(sprite* _mainSprite,vector2 _position, int _direction) {
 }
 
 void entity::update(double deltaTime) {
-	zPos = (worldToCameraIso(position).y - (hitbox.y / 2.0) + hitboxCenter.y);
 	if (animating && animation != NULL) {
 		if (animation->timer < 0) {
 			animation->timer = 1.0 / animation->rate;
@@ -27,9 +26,7 @@ void entity::update(double deltaTime) {
 
 void entity::draw(SDL_Renderer* renderer) {
 	if (animation != NULL) {
-		mainSprite->x = position.x;
-		mainSprite->y = position.y;
-		mainSprite->draw(renderer, animation->frame, animation->animID,0.5,0.5);
+		mainSprite->draw(renderer, position, animation->frame, animation->animID,1);
 	}
 }
 
@@ -39,10 +36,6 @@ void entity::start() {
 
 void entity::onDestroy() {
 
-}
-
-bool entity::compareEntity(entity* A, entity* B) {
-	return A->zPos < B->zPos;
 }
 
 

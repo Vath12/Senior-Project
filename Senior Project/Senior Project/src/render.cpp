@@ -4,6 +4,8 @@
 #include <SDL.h>
 #include "globals.h"
 
+
+
 void drawEllipsoidPolygon(SDL_Renderer* renderer, vector2 center, vector2 radii) {
 
 	SDL_Point points[17];
@@ -81,6 +83,7 @@ vector2 cameraToWorldIso(vector2 a) {
 vector2 worldToCameraIso(vector2 a) {
 	return worldToCamera(vector2((a.x - a.y)*tile_halfwidth, (a.y + a.x) * tile_halfheight));
 }
+
 
 
 SDL_Window* render_initialize(const char title[], int x, int y, int width, int height, int flags){

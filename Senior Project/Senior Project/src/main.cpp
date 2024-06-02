@@ -50,6 +50,7 @@ int main(int argc, char* args[]) {
 
 	SDL_Rect rect = { 150, 150, 100, 100 };
 
+	SDL_Texture* bunkerTexture = loadTexture(renderer,"resources/images/bunker.bmp");
 	SDL_Texture* infRun = loadTexture(renderer,"resources/images/inf_rifle_walk_sheet.bmp");
 	SDL_Texture* infIdle = loadTexture(renderer, "resources/images/inf_rifle_idle_sheet.bmp");
 	SDL_Texture* infFire = loadTexture(renderer, "resources/images/inf_rifle_fire_sheet.bmp");
@@ -85,22 +86,44 @@ int main(int argc, char* args[]) {
 	double lastTime = getTimeMillis();
 
 	//speed at 10fps is 1.3 m/s
-	sprite infantryRun = sprite(infRun, 10, 10, 8, 8, 128);
+	sprite infantryRun = sprite(infRun, 6, 6, 128);
 	infantryRun.centerY = 0.57;
-	sprite infantryIdle = sprite(infIdle, 10, 10, 8, 8, 128);
+	sprite infantryIdle = sprite(infIdle, 6, 6, 128);
 	infantryIdle.centerY = 0.57;
-	sprite infantryFire = sprite(infFire, 10, 10, 8, 8, 128);
+	sprite infantryFire = sprite(infFire, 6, 6, 128);
 	infantryFire.centerY = 0.57;
-	sprite infantryDead = sprite(infDead, 10, 10, 8, 8, 128);
+	sprite infantryDead = sprite(infDead, 6, 6, 128);
 
-	sprite infantryRun_G = sprite(infRun_G, 10, 10, 8, 8, 128);
-	infantryRun.centerY = 0.57;
-	sprite infantryIdle_G = sprite(infIdle_G, 10, 10, 8, 8, 128);
-	infantryRun.centerY = 0.57;
-	sprite infantryFire_G = sprite(infFire_G, 10, 10, 8, 8, 128);
-	infantryRun.centerY = 0.57;
-	sprite infantryDead_G = sprite(infDead_G, 10, 10, 8, 8, 128);
-	infantryRun.centerY = 0.57;
+	infantryIdle.min_bound_x = 0.45;
+	infantryIdle.min_bound_y = 0.38;
+	infantryIdle.max_bound_x = 0.55;
+	infantryIdle.max_bound_y = 0.6;
+
+	infantryRun.min_bound_x = 0.45;
+	infantryRun.min_bound_y = 0.38;
+	infantryRun.max_bound_x = 0.55;
+	infantryRun.max_bound_y = 0.6;
+
+	infantryFire.min_bound_x = 0.45;
+	infantryFire.min_bound_y = 0.38;
+	infantryFire.max_bound_x = 0.55;
+	infantryFire.max_bound_y = 0.6;
+
+	sprite infantryRun_G = infantryRun;
+	infantryRun_G.texture = infRun_G;
+	sprite infantryIdle_G = infantryIdle;
+	infantryIdle_G.texture = infIdle_G;
+	sprite infantryFire_G = infantryFire;
+	infantryFire_G.texture = infFire_G;
+	sprite infantryDead_G = infantryDead;
+	infantryDead_G.texture = infDead_G;
+
+	sprite bunker = sprite(bunkerTexture, 5, 5, 128);
+	bunker.centerY = 0.4;
+	bunker.min_bound_x = 0.32;
+	bunker.min_bound_y = 0.25;
+	bunker.max_bound_x = 0.65;
+	bunker.max_bound_y = 0.58;
 
 	weapon rifle = {
 		0.2, //blunt damage
@@ -119,7 +142,7 @@ int main(int argc, char* args[]) {
 
 	srand((unsigned int) getTimeMillis());
 
-	for (int i = 0; i < 32;i++) {
+	for (int i = 0; i < 1;i++) {
 		group* squad = createGroup();
 
 		for (int i = 0; i < 7; i++) {
@@ -145,10 +168,10 @@ int main(int argc, char* args[]) {
 		}
 	}
 
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 1; i++) {
 		group* squad = createGroup();
 
-		for (int i = 0; i < 7; i++) {
+		for (int i = 0; i < 1; i++) {
 
 			unit* soldier = create<unit>(&infantryRun,vector2(120,120) + vector2(30 * (rand() % 1000) / 1000.0, 30 * (rand() % 1000) / 1000.0), 0);
 			soldier->speed = 1.6;
@@ -205,12 +228,10 @@ int main(int argc, char* args[]) {
 
 		vector2 cursorPos = cameraToWorld(vector2(mouse_x, mouse_y));
 
-		std::sort(entities.begin(), entities.end(), entity::compareEntity);
-
 		SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
 
 		//Drawing Grid
-		double scale = 5;
+		double scale = 1;
 		for (int x = -500; x < 500; x++) {
 			vector2 p1 = worldToCameraIso(vector2(x, -500) * scale);
 			vector2 p2 = worldToCameraIso(vector2(x, 500) * scale);
@@ -221,14 +242,12 @@ int main(int argc, char* args[]) {
 			vector2 p2 = worldToCameraIso(vector2(500, y) * scale);
 			SDL_RenderDrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
 		}
-	
+
 		entity_quadtree = makeTree(&entities, 1024, 9);
 
 		//Drawing Quadtree
 		//SDL_SetRenderDrawColor(renderer, 0, 128, 255, 255);
 		//drawTree(&entity_quadtree, renderer);
-
-		playerDrawBackgroundUI(renderer);
 
 		for (group* g : groups) {
 			g->update();
@@ -251,12 +270,16 @@ int main(int argc, char* args[]) {
 			}
 		}
 
+		for (int i = 0; i < 8; i++) {
+			bunker.draw(renderer, vector2(i * 8, 4), 0, i, 0);
+		}
 		drawCorpses(renderer);
 		for (int i = 0; i < entities.size(); i++) {
 			entities[i]->draw(renderer);
 		}
 
-
+		playerDrawBackgroundUI(renderer);
+		drawSprites(renderer);
 		drawFX(renderer, deltaTime);
 		playerUpdate(deltaTime, renderer);
 

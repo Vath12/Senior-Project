@@ -10,9 +10,6 @@
 std::vector<bulletTracer> tracers = std::vector<bulletTracer>();
 std::vector<corpse> corpses = std::vector<corpse>();
 
-bool compareCorpse(corpse A, corpse B) {
-	return worldToCameraIso(A.position).y < worldToCameraIso(B.position).y;
-}
 
 void newCorpse(sprite* img, vector2 position, int direction) {
 	corpses.push_back(corpse(img,position,direction));
@@ -24,11 +21,10 @@ void newBulletFX(vector2 muzzle, vector2 target) {
 }
 
 void drawCorpses(SDL_Renderer* r) {
-	std::sort(corpses.begin(), corpses.end(), compareCorpse);
+
 	for (corpse c : corpses) {
-		c.img->x = c.position.x;
-		c.img->y = c.position.y;
-		c.img->draw(r,0,c.direction);
+
+		c.img->draw(r,c.position,0,c.direction,0);
 	}
 }
 

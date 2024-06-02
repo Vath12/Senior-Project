@@ -40,7 +40,6 @@ class entity {
 		bool animating = false;
 		vector2 hitbox;
 		vector2 hitboxCenter;
-		double zPos=0;
 		unsigned long int flags = 0;
 		unsigned short int team;
 
@@ -53,5 +52,4 @@ class entity {
 		void draw(SDL_Renderer* renderer);
 		virtual void start();
 		virtual void onDestroy();
-		static bool compareEntity(entity* A,entity* B);
 };
