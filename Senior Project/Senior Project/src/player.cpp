@@ -120,7 +120,14 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 			
 			selectDirection = false;
 			vector2 dir = (mouseWorldPos - movePosition).normalized();
-			std::vector<vector2> macroFormation = rectangleFormation(numSelected,dir);
+
+			std::vector<vector2> macroFormation = std::vector<vector2>();
+			
+			for (int i = 0; i < numSelected; i += 8) {
+				for (vector2 v : rectangleFormation(fmin(numSelected - i, 8), dir)) {
+					macroFormation.push_back(v - (dir) * (i / 8));
+				}
+			}
 
 			for (group* g : groups) {
 				if (g->selected) {
@@ -157,7 +164,15 @@ void playerUpdate(double deltaTime,SDL_Renderer* renderer) {
 		SDL_RenderDrawLine(renderer,a.x,a.y,b.x,b.y);
 
 		vector2 dir = (mouseWorldPos - movePosition).normalized();
-		std::vector<vector2> macroFormation = rectangleFormation(numSelected, dir);
+
+		std::vector<vector2> macroFormation = std::vector<vector2>();
+
+		for (int i = 0; i < numSelected; i += 8) {
+			for (vector2 v : rectangleFormation( fmin(numSelected-i,8), dir)) {
+				macroFormation.push_back(v - (dir) * (i/8));
+			}
+		}
+
 		for (vector2 v : macroFormation) {
 			drawEllipsoidPolygon(renderer,movePosition+v*5.0,vector2(1,1)*2);
 		}

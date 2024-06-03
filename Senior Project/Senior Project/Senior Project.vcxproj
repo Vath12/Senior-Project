@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\building.cpp" />
+    <ClCompile Include="src\combat.cpp" />
     <ClCompile Include="src\effects.cpp" />
     <ClCompile Include="src\group.cpp" />
     <ClCompile Include="src\entity.cpp" />
@@ -158,6 +160,8 @@
     <ClCompile Include="src\unit.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\building.h" />
+    <ClInclude Include="src\combat.h" />
     <ClInclude Include="src\effects.h" />
     <ClInclude Include="src\group.h" />
     <ClInclude Include="src\eventHandler.h" />

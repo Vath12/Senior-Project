@@ -22,6 +22,8 @@ class sprite {
 
 		int cellSize=0;
 
+		int frames=0;
+
 		SDL_Texture* texture;
 		sprite();
 		sprite(SDL_Texture* texture, double w, double h);
@@ -29,6 +31,13 @@ class sprite {
 
 		void draw(SDL_Renderer* renderer,vector2 position,int srcX,int srcY, int z);
 };
+
+/*
+Z level guide
+<0 background debris, corpses etc
+1 = units and buildings
+>1 = birds, airplanes, explosions
+*/
 
 struct drawData {
 	sprite* img;

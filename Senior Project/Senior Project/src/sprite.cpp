@@ -33,7 +33,7 @@ void sprite::draw(SDL_Renderer* renderer, vector2 position, int srcX, int srcY, 
 	rect.x -= rect.w * centerX;
 	rect.y -= rect.h * centerY;
 
-	drawQueue.push_back(drawData(this,rect,0,srcX,srcY));
+	drawQueue.push_back(drawData(this,rect,z,srcX,srcY));
 }
 
 
@@ -42,7 +42,6 @@ bool compareDrawData(drawData A, drawData B) {
 		return A.z < B.z;
 	}
 	return  A.rect.y + (A.rect.h * A.img->max_bound_y) < B.rect.y + (B.rect.h*B.img->max_bound_y) ;
-	//return  (A.rect.y + A.rect.h) < (B.rect.y + B.rect.h);
 }
 
 void drawSprites(SDL_Renderer* renderer) {

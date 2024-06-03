@@ -20,6 +20,9 @@
 #include "quadtree.h"
 #include "util.h"
 #include "texture_editor.h"
+#include "building.h"
+#include "combat.h"
+#include <chrono>
 
 int window_width = 1920;
 int window_height = 1080;
@@ -37,8 +40,15 @@ quadtree entity_quadtree;
 
 //spritesheets have 128x128 cells and anims play at 10fps
 
+
+double getTimeNano() {
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+}
 double getTimeMillis() {
-	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() / 1000.0;
+	return getTimeNano() / 1000000.0;
+}
+double getTime() {
+	return getTimeNano() / 1000000000.0;
 }
 
 int main(int argc, char* args[]) {
@@ -55,6 +65,7 @@ int main(int argc, char* args[]) {
 	SDL_Texture* infIdle = loadTexture(renderer, "resources/images/inf_rifle_idle_sheet.bmp");
 	SDL_Texture* infFire = loadTexture(renderer, "resources/images/inf_rifle_fire_sheet.bmp");
 	SDL_Texture* infDead = loadTexture(renderer, "resources/images/inf_dead_sheet.bmp");
+	SDL_Texture* blood = loadTexture(renderer, "resources/images/blood_sheet.bmp");
 
 	std::vector<SDL_Color> srcPallate = std::vector<SDL_Color>();
 	srcPallate.push_back(SDL_Color(122, 129, 65, 255));
@@ -82,8 +93,6 @@ int main(int argc, char* args[]) {
 	SDL_Texture* infFire_G = colorReplace(tmp, renderer, srcPallate, gerPallate);
 	tmp = SDL_LoadBMP("resources/images/inf_dead_sheet.bmp");
 	SDL_Texture* infDead_G = colorReplace(tmp, renderer, srcPallate, gerPallate);
-
-	double lastTime = getTimeMillis();
 
 	//speed at 10fps is 1.3 m/s
 	sprite infantryRun = sprite(infRun, 6, 6, 128);
@@ -118,36 +127,53 @@ int main(int argc, char* args[]) {
 	sprite infantryDead_G = infantryDead;
 	infantryDead_G.texture = infDead_G;
 
-	sprite bunker = sprite(bunkerTexture, 5, 5, 128);
-	bunker.centerY = 0.4;
+	sprite bunker = sprite(bunkerTexture, 6, 6, 128);
 	bunker.min_bound_x = 0.32;
 	bunker.min_bound_y = 0.25;
 	bunker.max_bound_x = 0.65;
 	bunker.max_bound_y = 0.58;
+
+	sprite bloodPuddle = sprite(blood, 8, 4, 128);
+	bloodPuddle.frames = 5;
 
 	weapon rifle = {
 		0.2, //blunt damage
 		6, //penetration
 		0.7, //post penetration damage
 		100, //range
-		0.1, //accuracy
+		0.7, //accuracy
 		0.75, //handling
 		0.6,//leading
 		30, //fireRate
 		5, //magazineSize
 		4, //reloadTime
 		0.8,//movementSpeedPenalty
+		0.6 //movementAccuracyPenalty
+	};
+
+	weapon machine_gun = {
+		0.8, //blunt damage
+		11, //penetration
+		1.3, //post penetration damage
+		120, //range
+		0.2, //accuracy
+		0.13, //handling
+		0.6,//leading
+		600, //fireRate
+		120, //magazineSize
+		6, //reloadTime
+		0.8,//movementSpeedPenalty
 		0.7 //movementAccuracyPenalty
 	};
 
-	srand((unsigned int) getTimeMillis());
+	srand((unsigned int) getTimeNano());
 
-	for (int i = 0; i < 1;i++) {
+	for (int i = 0; i < 16;i++) {
 		group* squad = createGroup();
 
 		for (int i = 0; i < 7; i++) {
 
-			unit* soldier = create<unit>(&infantryRun, vector2(30 * (rand() % 1000) / 1000.0, 30 * (rand() % 1000) / 1000.0), 0);
+			unit* soldier = create<unit>(&infantryRun, vector2(200,200) + vector2(50 * (rand() % 1000) / 1000.0, 50 * (rand() % 1000) / 1000.0), 0);
 			soldier->speed = 1.6;
 			soldier->acceleration = 100;
 			soldier->moveAnimation = &infantryRun_G;
@@ -156,7 +182,8 @@ int main(int argc, char* args[]) {
 			soldier->idleState = { 0,1,0,10,0 };
 			soldier->fireAnimation = &infantryFire_G;
 			soldier->fireState = { 0,5,0,10,0 };
-			soldier->dead = &infantryDead_G;
+			soldier->dead.push_back(&bloodPuddle);
+			soldier->dead.push_back(&infantryDead_G);
 			soldier->animating = true;
 			soldier->moving = false;
 			soldier->hitboxCenter = vector2(0,-0.35);
@@ -168,12 +195,12 @@ int main(int argc, char* args[]) {
 		}
 	}
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 128; i++) {
 		group* squad = createGroup();
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 7; i++) {
 
-			unit* soldier = create<unit>(&infantryRun,vector2(120,120) + vector2(30 * (rand() % 1000) / 1000.0, 30 * (rand() % 1000) / 1000.0), 0);
+			unit* soldier = create<unit>(&infantryRun,vector2(0,0) + vector2(50 * (rand() % 1000) / 1000.0, 50 * (rand() % 1000) / 1000.0), 0);
 			soldier->speed = 1.6;
 			soldier->acceleration = 100;
 			soldier->moveAnimation = &infantryRun;
@@ -182,7 +209,8 @@ int main(int argc, char* args[]) {
 			soldier->idleState = { 0,1,0,10,0 };
 			soldier->fireAnimation = &infantryFire;
 			soldier->fireState = { 0,5,0,10,0 };
-			soldier->dead = &infantryDead;
+			soldier->dead.push_back(&bloodPuddle);
+			soldier->dead.push_back(&infantryDead);
 			soldier->animating = true;
 			soldier->moving = false;
 			soldier->hitboxCenter = vector2(0, -0.35);
@@ -194,7 +222,24 @@ int main(int argc, char* args[]) {
 		}
 	}
 
+	for (int i = 0; i < 8; i++) {
+		double ang = (M_PI * 2 * i / 8.0) - 3*M_PI/4;
+		building* b = create<building>(&bunker, vector2(200,200)+vector2(30*cos(ang), 30*sin(ang)), i);
+		b->idle = &bunker;
+		b->idleState = { 0,1,0,1,0 };
+		b->fire = &bunker;
+		b->fireState = { 0,2,0,23,0 };
+		b->team = 0;
+		b->addToGarrison(&machine_gun, 35, 45);
+		b->addToGarrison(&machine_gun, -35, 45);
+	}
+
 	quadtree entity_quadtree = makeTree(&entities, 1024, 9);
+
+	auto start = std::chrono::high_resolution_clock::now();
+
+	int framerate = 0;
+	double framerateDisplayInterval=0;
 
 	while (run) {
 
@@ -204,10 +249,16 @@ int main(int argc, char* args[]) {
 		mouse_state = SDL_GetMouseState(&mouse_x, &mouse_y);
 		mouse_state_single = mouse_state & (~mouse_state_single);
 
-		deltaTime = (getTimeMillis() - lastTime);
-		lastTime = getTimeMillis();
+		deltaTime = (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start).count()) / 1000000000.0;
+		start = std::chrono::high_resolution_clock::now();
 
-		std::string newTitle = std::format("{} fps", std::round(std::min(1 / deltaTime, 1024.0)));
+		if (framerateDisplayInterval <= 0) {
+			framerate = std::round(1 / deltaTime);;
+			framerateDisplayInterval = 0.2;
+		}
+		framerateDisplayInterval -= deltaTime;
+
+		std::string newTitle = std::format("{} fps",framerate);
 
 		SDL_SetWindowTitle(window, newTitle.c_str());
 
@@ -223,14 +274,13 @@ int main(int argc, char* args[]) {
 		}
 
 		//Clear the screen
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_SetRenderDrawColor(renderer, 0, 70, 0, 255);
 		SDL_RenderClear(renderer);
 
-		vector2 cursorPos = cameraToWorld(vector2(mouse_x, mouse_y));
-
-		SDL_SetRenderDrawColor(renderer, 100, 0, 0, 255);
-
 		//Drawing Grid
+		/*
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 40 * (1.0 - fmin((camera_viewportWidth - min_viewportWidth) / 100.0, 1.0)));
 		double scale = 1;
 		for (int x = -500; x < 500; x++) {
 			vector2 p1 = worldToCameraIso(vector2(x, -500) * scale);
@@ -242,6 +292,8 @@ int main(int argc, char* args[]) {
 			vector2 p2 = worldToCameraIso(vector2(500, y) * scale);
 			SDL_RenderDrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
 		}
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		*/
 
 		entity_quadtree = makeTree(&entities, 1024, 9);
 
@@ -253,13 +305,24 @@ int main(int argc, char* args[]) {
 			g->update();
 		}
 
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		for (entity* e : entities) {
 			unit* u = dynamic_cast<unit*>(e);
 			if (u != nullptr && u->target == nullptr && u->searchCooldown<=0) {
 				u->findTarget(&entity_quadtree);
 				u->searchCooldown = 0.1 + (randomDouble() * 0.4);
 			}
+			building* b = dynamic_cast<building*>(e);
+			if (b != nullptr) {
+				for (int i = 0; i < b->fieldsOfFire.size(); i++) {
+					vector2 p1 = worldToCameraIso(b->position);
+					vector2 p2 = worldToCameraIso(b->position + b->fieldsOfFire[i].direction * b->maxRange);
+					//SDL_RenderDrawLine(renderer,p1.x,p1.y,p2.x,p2.y);
+				}
+				b->findTargets(&entity_quadtree);
+			}
 		}
+		
 
 		//loops are separate in case units are deleted
 		for (int i = 0; i < entities.size();i++) {
@@ -270,19 +333,15 @@ int main(int argc, char* args[]) {
 			}
 		}
 
-		for (int i = 0; i < 8; i++) {
-			bunker.draw(renderer, vector2(i * 8, 4), 0, i, 0);
-		}
+		updateCorpses(deltaTime);
 		drawCorpses(renderer);
 		for (int i = 0; i < entities.size(); i++) {
 			entities[i]->draw(renderer);
 		}
-
 		playerDrawBackgroundUI(renderer);
 		drawSprites(renderer);
 		drawFX(renderer, deltaTime);
 		playerUpdate(deltaTime, renderer);
-
 		SDL_RenderPresent(renderer);
 	}
 

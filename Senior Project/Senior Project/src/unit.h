@@ -4,6 +4,7 @@
 #include "sprite.h"
 #include "vector2.h"
 #include "quadtree.h"
+#include "combat.h"
 
 class group;
 
@@ -17,24 +18,6 @@ enum RANKS {
 	FirstLiuetenant=7,
 	Captain=8,
 	Major=9
-};
-
-struct weapon {
-	double bluntDamage = 0;
-	double penetration = 0;
-	double postPenetrationDamage = 0;
-	double range;
-	//hit targets at max range
-	double accuracy;
-	//hit moving targets at close range
-	double handling;
-	//hit moving targets at long range
-	double leading;
-	double fireRate;
-	int magazineSize;
-	double reloadTime;
-	double movementSpeedPenalty;
-	double movementAccuracyPenalty;
 };
 
 bool willHit(weapon* w, double range, double lateralMovement, bool moving);
@@ -87,7 +70,7 @@ class unit : public entity
 		sprite* moveAnimation;
 		sprite* idleAnimation;
 		sprite* fireAnimation;
-		sprite* dead;
+		std::vector<sprite*> dead;
 
 		weapon* armament = nullptr;
 		double attackCooldown;

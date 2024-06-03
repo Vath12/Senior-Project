@@ -11,11 +11,14 @@
 #include "effects.h"
 #include "math.h"
 #include "quadtree.h"
+#include "combat.h"
 
 unit::unit(sprite* _mainSprite, vector2 _position, int _direction) :
 	entity(_mainSprite, _position, _direction) {
+
 	velocity = vector2();
 	destination = _position;
+	dead = std::vector<sprite*>();
 }
 
 void unit::update(double deltaTime){
@@ -81,8 +84,10 @@ void unit::update(double deltaTime){
 	}
 
 	if (vp <= 0) {
-		if (dead != nullptr) {
-			newCorpse(dead,position,rand()%8);
+		int z = (-1*dead.size())+1;
+		for (sprite* s : dead){ 
+			newCorpse(s, position, rand() % 8,z, s->frames,0.2+randomDouble()*0.2);
+			z++;
 		}
 		destroy(this);
 	}
@@ -90,62 +95,43 @@ void unit::update(double deltaTime){
 
 void unit::findTarget(quadtree* tree) {
 
-	if (attackReady()) {
-		std::vector<entity*> targets = findInRadius(tree, position, armament->range);
-		int i = 0;
-		int count = 5;
-		double best = 10000000;
-		unit* newTarget = nullptr;
-		while (!targets.empty() && count > 0){
+	std::vector<entity*> targets = findInRadius(tree, position, armament->range);
+	int i = 0;
+	int count = 5;
+	double best = 10000000;
+	unit* newTarget = nullptr;
+	while (!targets.empty() && count > 0){
 
-			(i = (abs(rand()) % targets.size()));
+		(i = (abs(rand()) % targets.size()));
 
-			unit* u = dynamic_cast<unit*>(targets[i]);
-			if (u != nullptr && u->team != team) {
-				double score = (u->position - position).getMagnitude();
-				if (score < best-10) {
-					newTarget = u;
-					best = score;
-					count--;
-				}
+		unit* u = dynamic_cast<unit*>(targets[i]);
+		if (u != nullptr && u->team != team) {
+			double score = (u->position - position).getMagnitude();
+			if (score < best-10) {
+				newTarget = u;
+				best = score;
+				count--;
 			}
-			targets[i] = targets.back();
-			targets.pop_back();
 		}
-		if (newTarget != nullptr) {
-			target = newTarget;
-		}
+		targets[i] = targets.back();
+		targets.pop_back();
 	}
+	if (newTarget != nullptr) {
+		target = newTarget;
+	}
+	
 }
 
 bool unit::attackReady() {
 	return armament != nullptr && !attacking && attackCooldown <= 0;
 }
 
-bool willHit(weapon* w, double range, double lateralMovement,bool moving) {
-
-	double rangeScalar = (range / w->range);
-	double cappedLateralMovement = fmax(lateralMovement, 1);
-	double rangeChance = ((1 - rangeScalar) * (1 - w->accuracy)) + w->accuracy;
-	double closeChance = fmin(24*pow(rangeScalar+w->handling/cappedLateralMovement,2.0),1.0);
-	double farChance = fmin((1 - (1 - w->leading) * pow(rangeScalar, 2.0)) * 1.0/(sqrt(fmax(lateralMovement, 1))),1.0);
-
-	if (moving) {
-		rangeChance *= w->movementAccuracyPenalty;
-	}
-
-	double chance = farChance * closeChance * rangeChance;
-	return randomDouble() < chance;
-}
-
 void unit::attack(unit* target) {
 
 	vector2 d = target->position - position;
-	double range = d.getMagnitude();
 	direction = d.getCardinalDirection();
-	double lateral = (1 - fabs(d.normalized() * target->velocity.normalized())) * target->velocity.getMagnitude();
 
-	bool hit = willHit(armament, range, lateral, moving);
+	bool hit = willHit(armament, position, target->position,target->velocity,moving);
 
 	mainSprite = fireAnimation;
 	animation = &fireState;
@@ -158,7 +144,7 @@ void unit::attack(unit* target) {
 		target->takeDamage(armament);
 	}
 	else {
-		newBulletFX(position, position+ (d+ (randomVector() * 0.003 * range)).normalized()*armament->range);
+		newBulletFX(position, d.normalized(), armament->range);
 	}
 }
 
